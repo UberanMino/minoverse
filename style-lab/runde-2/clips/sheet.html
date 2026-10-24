@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="lib/base.css">
+<script src="lib/three.min.js"></script><script src="lib/cast.js"></script>
+<style>html,body{width:1920px;height:1080px;background:#2a2f3a}</style></head><body>
+<div id="s" style="position:relative;width:1920px;height:1080px"></div>
+<script>
+const q = new URLSearchParams(location.search);
+MC.style = q.get('style') || 'lambert';
+const st = MC.stage(document.getElementById('s'), { w: 1920, h: 1080, pix: +(q.get('pix') || 2), bg: '#3a4150', fov: 30 });
+const names = (q.get('who') || 'minoman,chickenguy,grandma,munch').split(',');
+const yaw = +(q.get('yaw') || 0.35), close = q.get('close');
+names.forEach((n, i) => {
+  const h = MC.make(n);
+  h.root.position.x = (i - (names.length - 1) / 2) * 1.0;
+  st.scene.add(h.root);
+  MC.move(h, +(q.get('ph') || 0.5), q.get('move') || 'idle', { yaw });
+  MC.face(h, 1.0, +(q.get('talk') || 0), 0);
+});
+if (close) { st.camera.position.set(0, 1.85, 1.6); st.camera.lookAt(0, 1.8, 0); st.camera.fov = 40; }
+else { st.camera.position.set(0, 1.2, 5.6); st.camera.lookAt(0, 1.0, 0); }
+st.camera.updateProjectionMatrix();
+st.render();
+</script></body></html>

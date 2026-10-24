@@ -1,0 +1,277 @@
+<title>Minoverse Stilrunde 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  /* Sichtungsraum wie Runde 1: links der 9:16-Monitor, rechts Steckbrief des Welt-Rahmens + Bewertung */
+  :root {
+    --bg: #110e17; --surface: #1b1724; --line: #2e2840; --fg: #f2eef9; --muted: #a79fb8;
+    --yolk: #ffc93c; --cola: #4a74ff; --alarm: #ff4d6d; --ok: #57d68d;
+    --f-display: 'Syne', 'Arial Black', sans-serif; --f-body: 'Atkinson Hyperlegible', system-ui, sans-serif; --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+    --bg: #eeedf3; --surface: #ffffff; --line: #d9d5e4; --fg: #17131f; --muted: #5d566c;
+    --yolk: #b07a00; --cola: #2448d6; --alarm: #c8183b; --ok: #13804a; color-scheme: light; } }
+  :root[data-theme="light"] {
+    --bg: #eeedf3; --surface: #ffffff; --line: #d9d5e4; --fg: #17131f; --muted: #5d566c;
+    --yolk: #b07a00; --cola: #2448d6; --alarm: #c8183b; --ok: #13804a; color-scheme: light; }
+  body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--f-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+  .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 28px; }
+  header { display: grid; gap: 14px; }
+  .eyebrow { font: 700 12px var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--yolk); }
+  h1 { font: 800 clamp(34px, 6vw, 60px)/1 var(--f-display); letter-spacing: -.02em; text-wrap: balance; margin: 0; }
+  .lede { max-width: 68ch; color: var(--muted); margin: 0; }
+  .lede b { color: var(--fg); }
+  .notes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: 500 12px var(--f-mono); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--muted); }
+  .chip.warn { border-color: var(--alarm); color: var(--alarm); }
+  .tally { display: flex; flex-wrap: wrap; gap: 18px; align-items: baseline; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; font-variant-numeric: tabular-nums; }
+  .tally strong { font: 800 28px var(--f-display); }
+  .tally span { color: var(--muted); font-size: 14px; }
+  #saveMode { margin-left: auto; font: 500 12px var(--f-mono); color: var(--muted); }
+
+  .cast { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+  .cast h2 { margin: 0; font: 800 22px var(--f-display); }
+  .cast img { width: 100%; height: auto; border-radius: 10px; display: block; background: #3a4050; }
+  .cast p { margin: 0; color: var(--muted); max-width: 72ch; font-size: 15px; }
+  .cast p b { color: var(--fg); }
+
+  .styles { display: grid; gap: 22px; list-style: none; padding: 0; margin: 0; }
+  .card { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  @media (max-width: 700px) { .card { grid-template-columns: minmax(0, 1fr); } .stage { max-width: 340px; margin: 0 auto; width: 100%; } }
+  .stage { position: relative; aspect-ratio: 9 / 16; max-width: 100%; border-radius: 10px; overflow: hidden; background: #000; align-self: start; }
+  .stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+
+  .info { display: grid; gap: 12px; align-content: start; min-width: 0; }
+  .info h2 { margin: 0; font: 800 26px/1.1 var(--f-display); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .info h2 .no { font: 700 14px var(--f-mono); color: var(--yolk); }
+  .info h2 .kind { font: 500 13px var(--f-mono); color: var(--muted); }
+  .pitch { margin: 0; max-width: 64ch; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 20px; }
+  .cols h3 { margin: 0 0 4px; font: 700 11px/1.9 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .cols ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; font-size: 14px; }
+  .lore { font-size: 14px; margin: 0; color: var(--muted); }
+  .lore b { color: var(--fg); font-weight: 700; }
+  .rate { display: grid; gap: 8px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .rate label, .rate .lbl { font: 700 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .scale { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+  .scale button { font: 700 15px var(--f-mono); padding: 9px 0; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; font-variant-numeric: tabular-nums; }
+  .scale button:hover { border-color: var(--yolk); }
+  .scale button[aria-pressed="true"] { background: var(--yolk); border-color: var(--yolk); color: #17131f; }
+  .scale button:focus-visible, textarea:focus-visible { outline: 3px solid var(--yolk); outline-offset: 2px; }
+  textarea { width: 100%; min-height: 84px; resize: vertical; font: 400 15px/1.45 var(--f-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; box-sizing: border-box; }
+  .status { font: 500 12px var(--f-mono); color: var(--muted); min-height: 1.4em; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--alarm); }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 10px; }
+  .panel h2 { margin: 0; font: 800 22px var(--f-display); }
+  .panel p { margin: 0; color: var(--muted); }
+  .rank ol { margin: 0; padding-left: 22px; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+  .rank li span { color: var(--muted); }
+  footer { color: var(--muted); font-size: 13px; max-width: 72ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Runde 2 · 5 Welt-Rahmen · je 32 Schläge bei 150 BPM (12,8 s)</div>
+    <h1>Minoverse Stilrunde 2</h1>
+    <p class="lede">Diesmal sind die Figuren <b>neu gebaut und animiert</b>, nach deinen Bildern, als 3D-Figuren aus Code wie der Cast bei Dat Swag. Und jede Karte ist <b>kein einzelner Shot, sondern ein Rahmen</b> wie SWAG OS: eine Umgebung mit festen Regeln, in der beliebig viele Folgen spielen können. Unter jedem Clip steht, was in diesem Rahmen immer gleich bleibt und was darin alles passieren kann. Bewerte bitte vor allem den Rahmen, nicht nur diesen einen Clip.</p>
+    <div class="notes">
+      <span class="chip warn">Pepsi Grandma ist ein Platzhalter (echter Clip fehlt noch)</span>
+      <span class="chip">Musik und Stimmen sind Platzhalter (synthetisch)</span>
+      <span class="chip">Struktur: Kaltstart → Drop auf Schlag 8 → Eskalation → Payoff → Loop</span>
+    </div>
+    <div class="tally" aria-live="polite">
+      <div><strong id="nRated">0</strong> <span>von 5 bewertet</span></div>
+      <div><strong id="avg">–</strong> <span>Ø Note</span></div>
+      <div id="saveMode">Speicher wird verbunden …</div>
+    </div>
+  </header>
+
+  <section class="cast" aria-labelledby="castH">
+    <h2 id="castH">Der Cast</h2>
+    <img src="posters/cast.webp" alt="Die vier Figuren nebeneinander: Mino Man im Anzug mit rosa Brille, Chicken Guy mit Hähnchenkörper, Pepsi Grandma mit Flasche, Officer Munch im Trenchcoat mit Akte" width="1200" height="656">
+    <p><b>Mino Man</b> (Anzug, Krawatte mit Pixelmuster, rosa Brille, Schnurrbart), <b>Chicken Guy</b> (Brathähnchen-Körper mit Keulenbeinen), <b>Pepsi Grandma</b> (Platzhalter mit Flasche und Mentos) und <b>Officer Munch</b> (Trenchcoat, Mütze, verschlafene Augen, Akte). Alle haben ein Gesichts-Rig mit Blinzeln und Lippensync und dieselben Tanz- und Gestenbewegungen. Dieselben Figuren tauchen in allen fünf Welten auf.</p>
+  </section>
+
+  <ol class="styles" id="list"></ol>
+
+  <section class="panel" aria-labelledby="allH">
+    <h2 id="allH">Gesamteindruck</h2>
+    <p>Sind wir jetzt näher dran? Was würdest du aus mehreren Welten kombinieren?</p>
+    <label class="lbl" for="fb-gesamt" style="font:700 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Feedback zur Runde</label>
+    <textarea id="fb-gesamt" placeholder="Zum Beispiel: Rahmen aus 02, Figuren wie in 04, Tempo aus 01 …"></textarea>
+    <div class="status" id="st-gesamt" aria-live="polite"></div>
+  </section>
+
+  <section class="panel rank" aria-labelledby="rankH">
+    <h2 id="rankH">Deine Reihenfolge</h2>
+    <ol id="rank"></ol>
+    <p id="rankEmpty">Sobald du die ersten Welten bewertet hast, erscheint hier das Ranking.</p>
+  </section>
+
+  <footer>Alle Clips sind HyperFrames-Kompositionen in 1080 × 1920 (hier verkleinert auf 720 × 1280). Die 3D-Figuren sind mit three.js aus Code gebaut, in niedriger Auflösung gerendert und pixelig hochskaliert. Die Originaldateien liegen in den Projektdateien unter stilrunde-2.</footer>
+</div>
+
+<script>
+const WORLDS = [
+  { id: '01', name: 'Mino Kabel', kind: 'Kabelfernsehen',
+    pitch: 'Der Minoverse ist ein Kabelanschluss mit zu vielen Sendern. Jemand zappt auf den Beat, und auf jedem Sender läuft dieselbe Welt in einem anderen Format.',
+    konst: ['Röhrenfernseher mit Scanlines und Wölbung', 'Grünes Bildschirm-OSD mit Programmnummer', 'Jeder Sender hat ein eigenes Logo', 'Ein Kabel-Ticker läuft über alle Sender hinweg', 'Zappen mit Bildschnee auf den Beat', 'Die Bildröhre geht an und am Ende wieder aus'],
+    formate: ['Nachrichten mit Mino Man', 'Wetter, also die Frequenz-Vorhersage', 'Teleshopping mit Pepsi Grandma', 'Tierwelt mit Chicken Guy', 'Testbild, Aerobic (MINO FIT), Pressekonferenz', 'Später: Kochshow, Krimi, Talkshow, Werbung'],
+    lore: 'Das Nachrichtenformat ist hier eingebaut. Mino Man ist auf jedem Sender, weil er der einzige Journalist ist. Der Ticker läuft unabhängig vom Programm.' },
+  { id: '02', name: 'Sim Mino', kind: 'Gottspiel',
+    pitch: 'Der Minoverse ist ein Aufbauspiel, dessen Spieler abwesend ist. Gott ist AFK, das Spiel läuft weiter, und Katastrophen werden aus dem Menü ausgelöst.',
+    konst: ['Isometrische Insel mit Bezirken, Fabrik, Bundesamt und Sendeturm', 'Menüleiste mit KATASTROPHEN', 'Statuszeile: „GOTT: ABWESEND“, Hot-Dog-Zähler', 'Werkzeugleiste und MELDUNGEN-Ticker', 'Berater-Fenster mit Mino Man (Berater für Wahrheit)', 'Ein verwaister AFK-Cursor und der Speicher-Dialog'],
+    formate: ['Jede Story als Ereignis auf der Karte', 'Kamerafahrten in einzelne Bezirke', 'Neue Gebäude bei jedem Release', 'Katastrophen als Drops (Hot-Dog-Regen, Pepsi-Eruption, Musik-Front)', 'Statistiken und Berater-Meldungen als Gags'],
+    lore: 'Uberan Mino ist der abwesende Spieler. Das vegane Hot-Dog-Programm ist die Katastrophe, und Musik ist eine Wetterfront.' },
+  { id: '03', name: 'Akte Mino', kind: 'Behörden-Schreibtisch',
+    pitch: 'Alles im Minoverse passiert auf einem Schreibtisch im Bundesamt. Die Figuren sind kleine lebendige Figuren zwischen Akten, Stempeln und Fax.',
+    konst: ['Schreibtisch mit grüner Unterlage und warmem Lampenlicht', 'Aktendeckel mit Schreibmaschinentext', 'Stempel knallen auf den Beat (GEGESSEN, WIEDERHOLT, UNGEKLÄRT)', 'Telefon, Fax, Rohrpost und Schreibmaschine', 'Mino Man tippt am Rand alles mit'],
+    formate: ['Jede Story ist eine Akte', 'Zeugen und Verdächtige erscheinen auf ihrer Akte', 'Officer Munch isst die Beweise', 'Faxe und Rohrpost bringen neue Wendungen', 'Ganze Arcs als Aktenstapel, der wächst'],
+    lore: 'Ordnung gegen Chaos als Bürokratie. Officer Munch ist hier der Kern, und die Akte 001 (Chicken Guy) bleibt ungeklärt.' },
+  { id: '04', name: 'Mino Quest', kind: 'Point-and-Click-Adventure',
+    pitch: 'Der Minoverse als 90er-Adventure. Mino Man wird mit Verben gesteuert, das Inventar ist voller Lore, und im Fieber kippen die Verben.',
+    konst: ['Pixelige 3D-Szene vor einem gemalten Nachthimmel mit Hot-Dog-Mond', 'Satzzeile („Rede mit Officer Munch“)', 'Neun Verben, eines davon ist immer ISS', 'Inventar mit Mentos, Akte, Hot Dog, Frequenz, Ausweis, Ente', 'Fadenkreuz-Cursor und Dialogzeilen über den Köpfen', 'Im Fieber Paletten-Zyklus und neue Verben (Tanze, Frittiere, Regne)'],
+    formate: ['Jeder Ort im Minoverse ist ein Raum', 'Jede Story ist ein Rätsel', 'Das Inventar wächst mit der Lore', 'Dialogbäume als Interview-Format', 'Gegenstände kombinieren (Mentos + Cola)'],
+    lore: 'Die Suche nach Chicken Guy vor der Hot-Dog-Fabrik. Gegenstände wie die Akte verschwinden, weil Munch sie isst.' },
+  { id: '05', name: 'Minoverse Hauptbahnhof', kind: 'Bahnhof',
+    pitch: 'Am Minoverse-Hauptbahnhof kommt alles an und nichts ist pünktlich. Mino Man berichtet live vom Bahnsteig, und jedes Zugfenster ist eine eigene kleine Szene.',
+    konst: ['Fallblatt-Anzeiger mit Zeit, Zug, Ziel und Hinweis', 'Gelbe Laufschrift', 'Gong und Durchsage', 'Gleis 3 und die Bahnhofsuhr', 'Mino Man und Officer Munch auf dem Bahnsteig', 'Züge rauschen durch, in jedem Fenster läuft eine Szene'],
+    formate: ['Neue Tracks fahren als Züge ein („Die Frequenz fährt ein“)', 'Verspätungen und Ausfälle als Running Gag', 'Zugfenster als Cameo-Bühne für jede Figur', 'Fundbüro, Bahnhofsmission, Durchsagen', 'Abfahrtstafel als Ticker für Lore'],
+    lore: 'Musik kommt wie ein unberechenbares Ereignis an. Ein Platz im Zug ist immer „RESERVIERT: UBERAN MINO“ und bleibt leer.' },
+];
+
+const IDS = WORLDS.map((w) => w.id).concat('gesamt');
+const state = {};
+IDS.forEach((id) => (state[id] = { note: null, feedback: '' }));
+let col = null;
+const LS = 'minoverse-stilrunde-2';
+function lsRead() { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch (e) { return {}; } }
+function lsWrite() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- Karten ----------
+const list = document.getElementById('list');
+const cards = {};
+WORLDS.forEach((w) => {
+  const li = document.createElement('li');
+  li.className = 'card';
+  li.id = 'welt-' + w.id;
+  li.innerHTML = `
+    <div class="stage">
+      <video src="video/${w.id}.mp4" poster="posters/${w.id}.webp" controls playsinline loop preload="none" aria-label="Clip ${esc(w.name)}"></video>
+    </div>
+    <div class="info">
+      <h2><span class="no">${w.id}</span>${esc(w.name)} <span class="kind">${esc(w.kind)}</span></h2>
+      <p class="pitch">${esc(w.pitch)}</p>
+      <div class="cols">
+        <div><h3>Bleibt immer gleich</h3><ul>${w.konst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+        <div><h3>Was darin passieren kann</h3><ul>${w.formate.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      </div>
+      <p class="lore"><b>Lore:</b> ${esc(w.lore)}</p>
+      <div class="rate">
+        <span class="lbl" id="lbl-${w.id}">Note für den Rahmen</span>
+        <div class="scale" role="group" aria-labelledby="lbl-${w.id}">
+          ${Array.from({ length: 10 }, (_, i) => `<button type="button" data-n="${i + 1}" aria-pressed="false">${i + 1}</button>`).join('')}
+        </div>
+        <label for="fb-${w.id}">Feedback</label>
+        <textarea id="fb-${w.id}" placeholder="Was soll bleiben, was muss weg, was fehlt?"></textarea>
+        <div class="status" aria-live="polite"></div>
+      </div>
+    </div>`;
+  list.appendChild(li);
+  const c = { status: li.querySelector('.status'), ta: li.querySelector('textarea'), btns: [...li.querySelectorAll('.scale button')] };
+  cards[w.id] = c;
+  c.btns.forEach((b) => b.addEventListener('click', () => {
+    const n = Number(b.dataset.n);
+    state[w.id].note = state[w.id].note === n ? null : n;
+    paint(w.id); save(w.id);
+  }));
+  bindText(w.id, c.ta);
+  // immer nur ein Clip gleichzeitig
+  li.querySelector('video').addEventListener('play', (e) => document.querySelectorAll('video').forEach((v) => { if (v !== e.target) v.pause(); }));
+});
+cards.gesamt = { status: document.getElementById('st-gesamt'), ta: document.getElementById('fb-gesamt'), btns: [] };
+bindText('gesamt', cards.gesamt.ta);
+
+function bindText(id, ta) {
+  let timer = null;
+  ta.addEventListener('input', () => {
+    state[id].feedback = ta.value;
+    setStatus(id, 'Wird gespeichert …');
+    clearTimeout(timer); timer = setTimeout(() => save(id), 700);
+  });
+  ta.addEventListener('blur', () => { clearTimeout(timer); if (ta.value !== state[id]._saved) save(id); });
+}
+function paint(id) {
+  const c = cards[id], st = state[id];
+  c.btns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === st.note)));
+  if (document.activeElement !== c.ta) c.ta.value = st.feedback || '';
+  summary();
+}
+function setStatus(id, txt, cls) { const el = cards[id].status; el.textContent = txt; el.className = 'status' + (cls ? ' ' + cls : ''); }
+function summary() {
+  const rated = WORLDS.filter((w) => state[w.id].note);
+  document.getElementById('nRated').textContent = rated.length;
+  document.getElementById('avg').textContent = rated.length ? (rated.reduce((a, w) => a + state[w.id].note, 0) / rated.length).toFixed(1).replace('.', ',') : '–';
+  const r = document.getElementById('rank');
+  r.textContent = '';
+  rated.sort((a, b) => state[b.id].note - state[a.id].note).forEach((w) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<b></b> <span></span>';
+    li.querySelector('b').textContent = `${w.name} · ${state[w.id].note}/10`;
+    const fb = state[w.id].feedback;
+    li.querySelector('span').textContent = fb ? '– ' + fb.slice(0, 80) + (fb.length > 80 ? '…' : '') : '';
+    r.appendChild(li);
+  });
+  document.getElementById('rankEmpty').hidden = rated.length > 0;
+}
+
+// ---------- Speichern ----------
+async function save(id) {
+  const w = WORLDS.find((x) => x.id === id), st = state[id];
+  lsWrite();
+  if (!col) { setStatus(id, 'Nur in diesem Browser gespeichert'); return; }
+  setStatus(id, 'Wird gespeichert …');
+  try {
+    await col.doc(id).set({ welt: w ? w.name : 'Gesamteindruck', note: st.note, feedback: st.feedback || '', aktualisiert: new Date().toISOString() });
+    st._saved = st.feedback;
+    setStatus(id, 'Gespeichert ✓', 'ok');
+  } catch (e) {
+    setStatus(id, 'Speichern fehlgeschlagen: ' + (e && e.code ? e.code : 'unbekannt') + '. Lokal gesichert.', 'err');
+  }
+}
+
+(function initLocal() {
+  const saved = lsRead();
+  Object.keys(saved).forEach((id) => { if (state[id]) { state[id].note = saved[id].note ?? null; state[id].feedback = saved[id].feedback || ''; } });
+  IDS.forEach(paint);
+})();
+
+(async function initDb() {
+  const mode = document.getElementById('saveMode');
+  let db = null;
+  try { db = window.claude && (await window.claude.use('db')); } catch (e) { db = null; }
+  if (!db) { mode.textContent = 'Speichert nur in diesem Browser'; return; }
+  col = db.collection('runde2');
+  mode.textContent = 'Speichert automatisch';
+  let first = true;
+  col.onSnapshot((snap) => {
+    snap.docs.forEach((d) => {
+      const v = d.data(); if (!v || !state[d.id]) return;
+      state[d.id].note = v.note ?? null;
+      if (document.activeElement !== cards[d.id].ta) state[d.id].feedback = v.feedback || '';
+      state[d.id]._saved = v.feedback || '';
+      paint(d.id);
+    });
+    if (first) {
+      first = false;
+      const remote = new Set(snap.docs.map((d) => d.id));
+      IDS.forEach((id) => { const st = state[id]; if (!remote.has(id) && (st.note || st.feedback)) save(id); });
+    }
+  }, () => { mode.textContent = 'Verbindung zum Speicher unterbrochen, lokal gesichert'; });
+})();
+</script>

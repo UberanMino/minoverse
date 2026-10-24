@@ -11,3 +11,4 @@ style-lab/**/lib/gsap.min.js
 *.wav
 *.mp3
 node_modules/
+style-lab/**/lib/three.min.js

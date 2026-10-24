@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>03 AKTE MINO</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/three.min.js"></script>
+<script src="lib/mv.js"></script>
+<script src="lib/cast.js"></script>
+<script src="lib/props.js"></script>
+<script src="audio/vo_03.js"></script>
+<style>
+  /* WELT-RAHMEN "AKTE MINO": Der Minoverse ist ein Behörden-Schreibtisch von oben (der Schreibtisch als
+     wörtlicher Desktop). Konstanten: Aktendeckel schieben sich herein wie Fenster, Stempel = Drop, Fax/Telefon/
+     Rohrpost/Schreibmaschine sind die "Programme", die Figuren sind Knetfiguren in Spielzeuggröße, die auf den
+     Akten herumlaufen. Officer Munch isst die Akten. Aller Text steht auf Papier. */
+  body { background: #2a1a10; }
+  #gl { position: absolute; inset: 0; }
+  #vig { pointer-events: none; background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(20,8,0,.7) 100%); }
+  #flash { background: #fff6dc; opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="12.8" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="12.8" data-track-index="9" src="audio/03.mp3"></audio>
+  <div id="gl"></div>
+  <div id="vig" class="clip"></div>
+  <div id="flash" class="clip"></div>
+</div>
+<script>
+  const B = MV.b, DROP = MV.DROP, $ = (id) => document.getElementById(id);
+  MC.style = 'clay';
+  const st = MC.stage($('gl'), { w: 1080, h: 1920, pix: 2, bg: '#2a1a10', hemi: 0.55, keyI: 0.7, rimI: 0.3, key: '#ffe6c0' });
+  const T3 = THREE, scene = st.scene;
+  const cam = new T3.PerspectiveCamera(40, 9 / 16, 0.05, 50);
+  // Schreibtischlampe als warmes Spotlicht
+  const lamp = new T3.SpotLight('#ffd9a0', 16, 14, 0.7, 0.6, 1.2);
+  lamp.position.set(1.4, 3.2, 1.8); lamp.target.position.set(0, 0, 0); scene.add(lamp, lamp.target);
+  // ---------- Schreibtisch ----------
+  const wood = MC.blotchTex(64, 64, ['#6b3f22', '#5a3319', '#7a4a28', '#4e2b14'], 5, 1800); wood.repeat.set(3, 5);
+  MC.add(scene, new T3.PlaneGeometry(6, 9), new T3.MeshPhongMaterial({ map: wood, shininess: 20 }), [0, -0.01, 0], [-Math.PI / 2, 0, 0]);
+  MC.add(scene, new T3.PlaneGeometry(2.6, 3.6), MC.mat('#2f5a3a'), [0, 0, 0.1], [-Math.PI / 2, 0, 0]); // grüne Schreibunterlage
+  // Papier als Canvas-Textur mit Schreibmaschinenschrift
+  function paperTex(lines, o) {
+    o = o || {};
+    return MP.textTex('', { w: 360, h: 504, bg: o.bg || '#f4efe2', font: '400 26px "Courier Prime"', after: (g) => {
+      g.textAlign = 'left'; g.fillStyle = '#222';
+      if (o.head) { g.font = '700 34px "Courier Prime"'; g.fillText(o.head, 24, 44); g.fillRect(24, 62, 312, 3); }
+      g.font = '400 24px "Courier Prime"';
+      lines.forEach((l, i) => g.fillText(l, 24, 104 + i * 36));
+      if (o.photo) { g.fillStyle = '#d8d2c4'; g.fillRect(200, 300, 130, 160); g.fillStyle = '#888'; g.font = '400 18px "Courier Prime"'; g.fillText('BEWEISFOTO', 210, 480); }
+      if (o.tag) { g.fillStyle = '#c2181f'; g.font = '700 22px "Courier Prime"'; g.fillText(o.tag, 24, 470); }
+    } });
+  }
+  function folder(x, z, rot, left, right, color) {
+    const g = new T3.Group();
+    MC.add(g, MC.geo.box(2.05, 0.02, 1.45), MC.mat(color || '#d9b36a'), [0, 0.01, 0]);
+    MC.add(g, MC.geo.box(0.5, 0.021, 0.12), MC.mat(color || '#d9b36a'), [-0.6, 0.011, -0.76]);
+    const pl = MC.add(g, new T3.PlaneGeometry(0.98, 1.37), new T3.MeshLambertMaterial({ map: left }), [-0.51, 0.025, 0], [-Math.PI / 2, 0, 0]);
+    const pr = MC.add(g, new T3.PlaneGeometry(0.98, 1.37), new T3.MeshLambertMaterial({ map: right }), [0.51, 0.025, 0], [-Math.PI / 2, 0, 0]);
+    g.position.set(x, 0, z); g.rotation.y = rot;
+    scene.add(g);
+    return { g, pl, pr, x, z, rot };
+  }
+  const f1 = folder(-0.05, 0.15, 0.04,
+    paperTex(['zuletzt gesehen:', 'Dienstag, abends', 'Hot-Dog-Fabrik', '', 'Zustand: ruhig', 'Bearbeiter:', 'Officer Munch'], { head: 'AKTE 001', tag: 'STATUS: UNGEKLÄRT' }),
+    paperTex(['Name: CHICKEN GUY', 'Beruf: Tänzer', 'Merkmale: knusprig'], { head: 'VERMISST', photo: true }));
+  const f2 = folder(0.3, 1.25, -0.12,
+    paperTex(['Mentos: ja', 'Cola: ja', 'Gesicht: nass', 'Wiederholung: ja', '', 'Keine weiteren', 'Details.'], { head: 'AKTE 002' }),
+    paperTex(['PEPSI GRANDMA', 'gesehen im', 'dritten Bezirk'], { head: 'SICHTUNG', photo: true }), '#c9d6e8');
+  const f3 = folder(-0.3, -0.75, 0.15,
+    paperTex(['Gegenstand:', 'Akte 001', '', 'Verbleib:', 'unbekannt', '', 'Verdacht: Hunger'], { head: 'AKTE 003' }),
+    paperTex(['WO IST', 'AKTE 001?'], { head: 'ANFRAGE', tag: 'DRINGEND' }), '#e8c9d6');
+  // Stempelabdrücke (erscheinen beim Aufschlag)
+  function stampMark(text, x, z, r, col) {
+    const tx = MP.textTex(text, { w: 512, h: 160, bg: 'rgba(0,0,0,0)', fg: col || '#c2181f', font: '400 70px "Special Elite"', after: (g, cv) => { g.strokeStyle = col || '#c2181f'; g.lineWidth = 10; g.strokeRect(14, 14, cv.width - 28, cv.height - 28); } });
+    const m = MC.add(scene, new T3.PlaneGeometry(0.9, 0.28), new T3.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0.9 }), [x, 0.06, z], [-Math.PI / 2, 0, r]);
+    m.visible = false;
+    return m;
+  }
+  const mk1 = stampMark('GEGESSEN', 0.45, 0.35, 0.25);
+  const mk2 = stampMark('UNGEKLÄRT', -0.2, -0.6, -0.2);
+  const mk3 = stampMark('WIEDERHOLT', -0.3, 1.2, 0.1, '#1f4fd0');
+  // Stempel
+  const stamp = new T3.Group();
+  MC.add(stamp, MC.geo.box(0.42, 0.08, 0.2), MC.mat('#7a4a28'), [0, 0.04, 0]);
+  MC.add(stamp, MC.geo.box(0.44, 0.03, 0.22), MC.mat('#c2181f'), [0, 0.0, 0]);
+  MC.add(stamp, MC.geo.cyl(0.04, 0.05, 0.25, 8), MC.mat('#5a3319'), [0, 0.2, 0]);
+  MC.add(stamp, MC.geo.ball(0.09, 10, 8), MC.mat('#3a1f0e'), [0, 0.36, 0]);
+  scene.add(stamp);
+  // Schreibmaschine, Telefon, Fax, Becher, Rohrpost
+  const tw = new T3.Group();
+  MC.add(tw, MC.geo.box(0.7, 0.16, 0.45), MC.mat('#2b2b30'), [0, 0.08, 0]);
+  MC.add(tw, MC.geo.cyl(0.05, 0.05, 0.75, 10), MC.mat('#1a1a1e'), [0, 0.2, -0.18], [0, 0, Math.PI / 2]);
+  const twPaper = MC.add(tw, new T3.PlaneGeometry(0.5, 0.45), MC.mat('#f4efe2'), [0, 0.42, -0.2], [-0.25, 0, 0]);
+  for (let i = 0; i < 12; i++) MC.add(tw, MC.geo.cyl(0.02, 0.02, 0.02, 6), MC.mat('#e8e2d0'), [-0.25 + (i % 6) * 0.1, 0.17, 0.05 + Math.floor(i / 6) * 0.08]);
+  tw.position.set(0.85, 0, -1.25); tw.rotation.y = -Math.PI / 2; scene.add(tw);
+  const phone = new T3.Group();
+  MC.add(phone, MC.geo.box(0.36, 0.12, 0.3), MC.mat('#b3121e'), [0, 0.06, 0]);
+  const hand = MC.add(phone, MC.geo.box(0.42, 0.07, 0.1), MC.mat('#b3121e'), [0, 0.16, 0]);
+  MC.add(phone, MC.geo.cyl(0.1, 0.1, 0.02, 12), MC.mat('#e8e2d0'), [0, 0.13, 0.05]);
+  phone.position.set(-0.95, 0, -1.65); phone.rotation.y = 0.3; scene.add(phone);
+  const fax = new T3.Group();
+  MC.add(fax, MC.geo.box(0.6, 0.18, 0.42), MC.mat('#d8d4c8'), [0, 0.09, 0]);
+  const faxPaper = MC.add(fax, new T3.PlaneGeometry(0.42, 0.7), new T3.MeshLambertMaterial({ map: paperTex(['FREQUENZ', 'IM ANMARSCH', '', 'BITTE NICHT', 'ESSEN'], { head: 'DRINGEND' }), side: T3.DoubleSide }), [0, 0.12, 0.2], [-Math.PI / 2, 0, 0]);
+  fax.position.set(-0.85, 0, 1.75); fax.rotation.y = 0.15; scene.add(fax);
+  const mug = new T3.Group();
+  MC.add(mug, MC.geo.cyl(0.12, 0.11, 0.24, 12), MC.mat('#f2f0ea'), [0, 0.12, 0]);
+  MC.add(mug, MC.geo.cyl(0.105, 0.105, 0.01, 12), MC.mat('#3a1f0e'), [0, 0.235, 0]);
+  MC.add(mug, new T3.TorusGeometry(0.06, 0.02, 6, 10), MC.mat('#f2f0ea'), [0.13, 0.12, 0], [0, 0, 0]);
+  mug.position.set(1.05, 0, 0.75); scene.add(mug);
+  const capsule = MC.add(scene, MC.geo.cyl(0.07, 0.07, 0.4, 10), MC.mat('#c9ccd6'), [0, 0.15, 0], [0, 0, Math.PI / 2]);
+  // ---------- Knetfiguren ----------
+  const FS = 0.42;
+  const mu = MC.make('munch', { scale: FS }), cg = MC.make('chickenguy', { scale: FS }), gm = MC.make('grandma', { scale: FS }), mm = MC.make('minoman', { scale: FS });
+  [mu, cg, gm, mm].forEach((h) => scene.add(h.root));
+  mm.root.position.set(0.42, 0, -1.25);
+  const foam = MP.foam(scene, 60, 9);
+  // Krümel
+  const crumbs = [];
+  for (let i = 0; i < 40; i++) { const c = MC.add(scene, MC.geo.ico(0.012 + MV.hash(i) * 0.012, 0), MC.mat(i % 2 ? '#e8d2a0' : '#d9b36a'), [0, 0, 0]); c.visible = false; crumbs.push(c); }
+  // fliegende Blätter im Fieber
+  const sheets = [];
+  for (let i = 0; i < 14; i++) { const s = MC.add(scene, new T3.PlaneGeometry(0.35, 0.48), new T3.MeshLambertMaterial({ color: '#f4efe2', side: T3.DoubleSide }), [0, 0, 0]); s.visible = false; sheets.push(s); }
+
+  const flash = $('flash'), glc = st.canvas;
+  const tl = gsap.timeline({ paused: true });
+  MV.onFrame((t) => {
+    const beat = t / MV.BEAT, after = MV.after(t);
+    const pulse = after ? MV.pulse(t, 7, 1, DROP) : 0;
+    const fever = MV.clamp((beat - 18) / 4, 0, 1) * (beat < 26 ? 1 : MV.clamp((28 - beat) / 2, 0, 1));
+    // Kamera: von oben, leichtes Atmen, Shake auf den Stempeln
+    const shake = MV.imp(t, DROP, 0.12) + MV.imp(t, B(24), 0.12) + MV.imp(t, B(13), 0.1) * 0.6;
+    const tilt = 0.15 * fever * Math.sin(t * 2.3);
+    const push = MV.clamp(t / DROP, 0, 1);
+    cam.position.set(0.08 * Math.sin(t * 0.4) + 0.06 * shake * Math.sin(t * 80), 4.6 - 0.4 * push + 0.12 * pulse, 4.1 - 0.35 * push + 0.06 * shake * Math.cos(t * 70));
+    cam.lookAt(0, 0, 0.05);
+    cam.rotateZ(tilt);
+    // Lampe schwingt im Fieber
+    lamp.position.set(1.4 * Math.cos(fever * t * 4), 3.2, 1.8 * Math.sin(0.9 + fever * t * 4));
+    lamp.color.setHSL(fever > 0 ? (t * 0.8) % 1 : 0.1, fever > 0 ? 0.9 : 0.7, 0.75);
+    // Akten schieben sich herein (wie Fenster)
+    const slide = (f, t0, from) => { const k = MV.ease.back(MV.clamp((t - t0) / 0.3, 0, 1), 1.2); f.g.position.x = MV.lerp(from, f.x, k); f.g.visible = t >= t0 - 0.01; };
+    f1.g.visible = true;
+    slide(f2, B(12), 3.5);
+    slide(f3, B(16), -3.5);
+    // Munch isst: Seiten schrumpfen vom Rand her
+    const eat1 = MV.clamp((t - B(4)) / B(14), 0, 1), eatAll = MV.clamp((t - B(24)) / B(3.5), 0, 1);
+    f1.pr.scale.x = 1 - 0.7 * eat1; f1.pr.position.x = 0.51 - 0.49 * 0.7 * eat1;
+    [f1, f2, f3].forEach((f) => { const s = 1 - eatAll; f.g.scale.set(Math.max(0.001, s), 1, Math.max(0.001, s)); });
+    // Fieber: Akten heben ab und drehen sich
+    [f1, f2, f3].forEach((f, i) => { f.g.position.y = fever * (0.3 + 0.2 * i) * (1 + Math.sin(t * 3 + i)); f.g.rotation.y = f.rot + fever * Math.sin(t * 2 + i) * 0.8; });
+    sheets.forEach((s, i) => {
+      const on = fever > 0.05;
+      s.visible = on;
+      if (!on) return;
+      const a = t * (0.8 + MV.hash(i) * 0.8) + i;
+      const r = 0.5 + 1.1 * MV.hash(i + 3);
+      s.position.set(Math.cos(a) * r, 0.4 + 1.2 * fever * MV.hash(i + 7) + 0.2 * Math.sin(a * 2), Math.sin(a) * r * 1.4);
+      s.rotation.set(a * 1.3, a, a * 0.7);
+    });
+    // Stempel: schwebt, knallt auf den Drop, dann auf jedem 4. Schlag woanders
+    const hits = [[DROP, 0.45, 0.35], [B(13), -0.3, 1.2], [B(24), -0.2, -0.6]];
+    let sx = 0.9, sz = 0.6, sy = 0.9;
+    for (let i = 0; i < hits.length; i++) {
+      const [th, hx, hz] = hits[i];
+      const dt = t - th;
+      if (dt > -B(1.5) && dt < B(1.5)) {
+        sx = hx; sz = hz;
+        sy = dt < 0 ? 0.05 + 0.85 * Math.pow(MV.clamp(-dt / B(1.2), 0, 1), 0.7) : 0.05 + 0.85 * MV.ease.out(MV.clamp(dt / B(1.2), 0, 1));
+      }
+    }
+    stamp.position.set(sx, sy, sz); stamp.rotation.y = 0.25;
+    mk1.visible = t >= DROP && eatAll < 0.9; mk3.visible = t >= B(13) && t >= B(12.3) && eatAll < 0.9; mk2.visible = t >= B(24) && eatAll < 0.9;
+    flash.style.opacity = 0.35 * (MV.imp(t, DROP, 0.1) + MV.imp(t, B(24), 0.1));
+    // Telefon klingelt im Aufbau und im Fieber
+    const ring = (t < DROP && Math.floor(t * 2) % 2 === 0) || fever > 0.3;
+    hand.position.y = 0.16 + (ring ? 0.03 * Math.abs(Math.sin(t * 60)) : 0);
+    phone.rotation.z = ring ? 0.05 * Math.sin(t * 70) : 0;
+    // Fax spuckt Papier ab Schlag 10
+    const fk = MV.clamp((t - B(10)) / B(3), 0, 1);
+    faxPaper.scale.y = Math.max(0.01, fk); faxPaper.position.z = 0.2 + 0.35 * fk;
+    // Rohrpost-Kapsel saust auf Schlag 14 und 22 quer durchs Bild
+    const ca = Math.max(MV.clamp((t - B(14)) / 0.45, 0, 1), MV.clamp((t - B(22)) / 0.45, 0, 1) * (t > B(22) ? 1 : 0));
+    capsule.visible = (t > B(14) && t < B(14) + 0.45) || (t > B(22) && t < B(22) + 0.45);
+    capsule.position.set(-2 + 4 * ((t > B(22) ? (t - B(22)) : (t - B(14))) / 0.45), 0.25, t > B(22) ? -0.2 : 0.9);
+    capsule.rotation.x = t * 20;
+    // ---------- Figuren ----------
+    // Officer Munch läuft im Aufbau auf die Akte und isst
+    const mw = MV.clamp(t / B(4), 0, 1);
+    mu.root.position.set(MV.lerp(-1.6, 0.62, MV.ease.out(mw)), 0.03 + (f1.g.position.y), 0.55);
+    MC.move(mu, beat, t < B(4) ? 'walk' : 'eat', { yaw: t < B(4) ? Math.PI / 2 : -0.4 });
+    MC.face(mu, t, Math.max(MV.talk('3b', t), t > B(4) ? 0.35 * Math.max(0, Math.sin(t * 14)) : 0), 0);
+    mu.root.scale.setScalar(FS * (1 + 0.25 * eatAll));
+    // Chicken Guy: Beweisstück auf der Akte, lebt ab dem Drop
+    cg.root.position.set(0.3, 0.03 + f1.g.position.y, -0.05);
+    MC.move(cg, beat, after ? (beat > 18 ? 'twerk' : 'flap') : 'stand', { yaw: after ? 0.4 * Math.sin(t * 2) : 0, k: after ? 1 : 0 });
+    MC.face(cg, t, after ? 0.6 : 0, after ? 0.8 : 0, after ? {} : { noBlink: true, sleepy: 0.6 });
+    cg.root.visible = eatAll < 0.95;
+    // Pepsi Grandma kommt mit Akte 002 und eruptiert
+    gm.root.visible = t >= B(12) && eatAll < 0.95;
+    gm.root.position.set(f2.g.position.x + 0.15, 0.03 + f2.g.position.y, 1.3);
+    MC.move(gm, beat, t < B(13) ? 'shake' : 'blast', { yaw: -0.3 });
+    MC.face(gm, t, t > B(13) ? 0.8 : 0.2, t > B(13) ? 1 : 0.5);
+    gm.root.updateMatrixWorld(true);
+    foam(t, B(13), gm.cap.getWorldPosition(new T3.Vector3()), 0.35, 1.2);
+    // Mino Man tippt den Bericht
+    MC.move(mm, beat, 'typing', { yaw: Math.PI / 2 - 0.35 });
+    MC.face(mm, t, MV.talk('3a', t), 0, { lookY: -0.6 });
+    // Krümel um Munch
+    crumbs.forEach((c, i) => {
+      const on = t > B(4.5);
+      c.visible = on;
+      const a = MV.hash(i) * 6.28, r = 0.1 + MV.hash(i + 4) * 0.35 * (1 + eatAll * 2);
+      c.position.set(mu.root.position.x + Math.cos(a) * r, 0.04, mu.root.position.z + Math.sin(a) * r * 0.8);
+    });
+    glc.style.filter = fever > 0 ? `hue-rotate(${fever * ((t * 200) % 360)}deg) saturate(${1 + fever * 0.8})` : 'none';
+    st.render(scene, cam);
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

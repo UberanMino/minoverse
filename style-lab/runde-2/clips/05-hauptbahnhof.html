@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>05 MINOVERSE HAUPTBAHNHOF</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/three.min.js"></script>
+<script src="lib/mv.js"></script>
+<script src="lib/cast.js"></script>
+<script src="lib/props.js"></script>
+<script src="audio/vo_05.js"></script>
+<style>
+  /* WELT-RAHMEN "MINOVERSE HAUPTBAHNHOF": Der Minoverse ist ein Bahnhof, an dem alles ankommt und nichts
+     pünktlich ist. Konstanten: Fallblatt-Anzeiger (Zeit, Zug, Ziel, Gleis, Hinweis) mit Laufschrift-Ticker,
+     Gong + Durchsage, Gleis 3, Bahnsteig-Uhr, Mino Man berichtet live vom Bahnsteig. Züge sind die "Fenster":
+     jedes Zugfenster ist eine eigene kleine Szene. Verspätung ist die Physik dieser Welt. */
+  #gl { position: absolute; inset: 0; }
+  #board { position: absolute; left: 0; right: 0; top: 0; height: 520px; background: #0b1f4a; border-bottom: 10px solid #08142e; padding: 22px 26px 0; z-index: 5; }
+  #board .hd { display: grid; grid-template-columns: 150px 180px 1fr 60px; gap: 14px; font: 600 30px 'Barlow Condensed'; color: #9fb4e0; letter-spacing: 1px; margin-bottom: 8px; }
+  .row { display: grid; grid-template-columns: 150px 180px 1fr 60px; gap: 14px; margin-bottom: 12px; }
+  .row > div { font: 700 40px 'IBM Plex Mono'; color: #fff; white-space: pre; overflow: hidden; }
+  .row .hint { grid-column: 3 / 5; font: 700 34px 'IBM Plex Mono'; color: #ffe34a; margin-top: -8px; }
+  .cell { display: inline-block; width: 0.62em; text-align: center; background: linear-gradient(180deg, #13295e 49%, #071331 51%); margin-right: 2px; border-radius: 3px; }
+  #lauf { position: absolute; left: 0; right: 0; bottom: 0; height: 62px; background: #ffe34a; overflow: hidden; }
+  #lauf span { position: absolute; top: 6px; white-space: nowrap; font: 800 42px 'Barlow Condensed'; color: #0b1f4a; letter-spacing: 1px; }
+  #clock { position: absolute; right: 50px; top: 1560px; width: 170px; height: 170px; border-radius: 50%; background: #fff; border: 10px solid #222; z-index: 4; }
+  #clock i { position: absolute; left: 50%; top: 50%; transform-origin: 50% 100%; background: #111; }
+  #clock .h { width: 10px; height: 46px; margin: -46px 0 0 -5px; }
+  #clock .m { width: 7px; height: 66px; margin: -66px 0 0 -3.5px; }
+  #clock .s { width: 4px; height: 70px; margin: -70px 0 0 -2px; background: #c4002a; }
+  #gleis { position: absolute; left: 50px; top: 1570px; width: 150px; height: 150px; background: #fff; border: 8px solid #0b1f4a; display: grid; place-items: center; font: 800 120px 'Barlow Condensed'; color: #0b1f4a; z-index: 4; }
+  #flash { background: #fff; opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="12.8" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="12.8" data-track-index="9" src="audio/05.mp3"></audio>
+  <div id="gl"></div>
+  <div id="board">
+    <div class="hd"><span>ZEIT</span><span>ZUG</span><span>NACH</span><span>GLEIS</span></div>
+    <div class="row"><div id="r1a"></div><div id="r1b"></div><div id="r1c"></div><div id="r1d"></div><div class="hint" id="r1e"></div></div>
+    <div class="row"><div id="r2a"></div><div id="r2b"></div><div id="r2c"></div><div id="r2d"></div><div class="hint" id="r2e"></div></div>
+    <div id="lauf"><span id="lauft">+++ PEPSI GRANDMA WURDE ERNEUT IM DRITTEN BEZIRK GESEHEN – KEINE WEITEREN DETAILS +++ INSTITUT FÜR AUFEINANDERFOLGENDE EREIGNISSE: MITTWOCH FOLGTE ERNEUT AUF DIENSTAG +++ BITTE LASSEN SIE IHR GEPÄCK NICHT UNBEAUFSICHTIGT GLAUBEN +++</span></div>
+  </div>
+  <div id="gleis">3</div>
+  <div id="clock"><i class="h" id="ch"></i><i class="m" id="cm"></i><i class="s" id="cs"></i></div>
+  <div id="flash" class="clip"></div>
+</div>
+<script>
+  const B = MV.b, DROP = MV.DROP, $ = (id) => document.getElementById(id);
+  // ---------- Fallblatt-Anzeiger ----------
+  const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.-';
+  // Fahrplan: [ab Schlag, Zeile 1 (5 Felder), Zeile 2 (5 Felder)]
+  const PLAN = [
+    [0, ['16:20', 'ICE420', 'DRITTER BEZIRK', '3', 'ca. 9000 Min später'], ['16:21', 'RE 7', 'HOT-DOG-FABRIK', '3', 'fährt nicht']],
+    [8, ['JETZT', 'FREQU.', 'ÜBERALL', '3', 'DURCHFAHRT · ZURÜCKTRETEN'], ['16:21', 'RE 7', 'HOT-DOG-FABRIK', '3', 'fährt nicht']],
+    [14, ['JETZT', 'FREQU.', 'ÜBERALL', '3', 'DURCHFAHRT · ZURÜCKTRETEN'], ['GEST.', 'S 0', 'MORGEN', '3', 'heute früher als geplant']],
+    [20, ['????', '?????', 'CHICKEN GUY', '3', 'Zugteil wurde gegessen'], ['GEST.', 'S 0', 'MORGEN', '3', 'heute früher als geplant']],
+    [27, ['16:20', 'ICE420', 'DRITTER BEZIRK', '3', 'ZUG FÄLLT AUS'], ['16:21', 'RE 7', 'HOT-DOG-FABRIK', '3', 'fährt nicht']],
+  ];
+  const cellsCache = {};
+  function flap(id, txt, prev, tc, t, w) {
+    const el = $(id);
+    txt = String(txt); prev = String(prev);
+    const n = Math.max(txt.length, prev.length, w || 0);
+    let out = '';
+    for (let i = 0; i < n; i++) {
+      const settle = tc + 0.08 + i * 0.025;
+      let ch = t >= settle ? (txt[i] || ' ') : t >= tc ? ABC[Math.floor(MV.hash(Math.floor(t * 28) + i * 7) * ABC.length)] : (prev[i] || ' ');
+      out += ch;
+    }
+    if (cellsCache[id] === out) return;
+    cellsCache[id] = out;
+    el.innerHTML = [...out].map((c) => `<span class="cell">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+  }
+  // ---------- 3D: Bahnsteig quer zum Gleis ----------
+  MC.style = 'lambert';
+  const st = MC.stage($('gl'), { w: 1080, h: 1392, y: 528, pix: 3, bg: '#2a3040', hemi: 0.8, keyI: 1.2, key: '#f2f6ff', rim: '#9fc8ff' });
+  const T3 = THREE, scene = st.scene;
+  scene.fog = new T3.Fog('#2a3040', 10, 30);
+  const cam = new T3.PerspectiveCamera(28, 9 / 16, 0.1, 100);
+  // Canvas beginnt unter dem Anzeiger (sonst schneidet der Renderer den unteren Rand ab); Bildausschnitt bleibt der des Vollbilds
+  cam.setViewOffset(1080, 1920, 0, 528, 1080, 1392);
+  // Bahnsteig vorn, Gleis, Bahnsteig hinten, Wand mit Plakaten, Dach
+  MC.add(scene, MC.geo.box(40, 0.6, 3.4), MC.mat('#959ba5'), [0, 0.3, 2.7]);
+  // Fliesenraster als flache Leisten statt Textur (Texturen mit Wiederholung blieben im Render schwarz)
+  for (let i = -30; i <= 30; i++) MC.add(scene, MC.geo.box(0.03, 0.005, 3.4), MC.mat('#7f858f'), [i * 0.66, 0.603, 2.7]);
+  for (let j = 0; j < 6; j++) MC.add(scene, MC.geo.box(40, 0.005, 0.03), MC.mat('#7f858f'), [0, 0.603, 1.3 + j * 0.57]);
+  MC.add(scene, MC.geo.box(40, 0.02, 0.12), new T3.MeshBasicMaterial({ color: '#ffe34a' }), [0, 0.61, 1.25]);
+  MC.add(scene, MC.geo.box(40, 0.05, 2.4), MC.mat('#3a3028'), [0, 0.02, 0]);
+  for (let i = -20; i < 20; i++) MC.add(scene, MC.geo.box(0.12, 0.06, 2.0), MC.mat('#5a4a3a'), [i * 0.6, 0.06, 0]);
+  [-0.55, 0.55].forEach((z) => MC.add(scene, MC.geo.box(40, 0.08, 0.06), MC.mat('#b8bcc6'), [0, 0.12, z]));
+  MC.add(scene, MC.geo.box(40, 0.6, 2.4), MC.mat('#8a909a'), [0, 0.3, -2.4]);
+  MC.add(scene, MC.geo.box(40, 4.0, 0.2), MC.mat('#c8b89a'), [0, 2.0, -3.6]);
+  const posters = [['VERMISST\nCHICKEN GUY', '#c4002a', '#fff'], ['MINO-COLA\nmit Mentos', '#1f4fd0', '#fff'], ['GLEIS 3\nwie immer', '#ffe34a', '#0b1f4a'], ['HIER KÖNNTE\nIHR GOTT STEHEN', '#2a1a3a', '#f2d28a']];
+  for (let i = -4; i <= 4; i++) {
+    const p = posters[(i + 8) % 4];
+    MC.add(scene, new T3.PlaneGeometry(1.3, 1.8), new T3.MeshBasicMaterial({ map: MP.textTex(p[0], { w: 256, h: 356, bg: p[1], fg: p[2], font: '800 44px "Barlow Condensed"', lh: 54 }) }), [i * 2.6, 1.9, -3.48]);
+    MC.add(scene, MC.geo.box(0.25, 4.5, 0.25), MC.mat('#5a6070'), [i * 2.6 + 1.3, 2.25, -1.5]);
+  }
+  // ---------- der Zug: jedes Fenster ist eine Szene ----------
+  const train = new T3.Group(); scene.add(train);
+  const CAR = 3.4, NCAR = 6;
+  const winScenes = [];
+  for (let c = 0; c < NCAR; c++) {
+    const g = new T3.Group(); g.position.x = -c * (CAR + 0.15); train.add(g);
+    const shell = c === 0 ? '#f2f2f2' : '#eef0f2';
+    MC.add(g, MC.geo.box(CAR, 0.75, 1.6), MC.mat(shell), [0, 0.75, 0]);       // unten
+    MC.add(g, MC.geo.box(CAR, 0.4, 1.6), MC.mat(shell), [0, 2.0, 0]);         // oben
+    MC.add(g, MC.geo.box(CAR, 0.1, 1.62), new T3.MeshBasicMaterial({ color: '#c4002a' }), [0, 1.08, 0]); // Streifen
+    [-1.6, 0, 1.6].forEach((x) => MC.add(g, MC.geo.box(0.22, 0.85, 1.6), MC.mat(shell), [x, 1.58, 0]));
+    MC.add(g, MC.geo.box(CAR, 1.0, 0.05), new T3.MeshBasicMaterial({ color: '#ffe2a8' }), [0, 1.55, -0.6]); // Innenwand leuchtet
+    if (c === 0) { MC.add(g, MC.geo.box(0.6, 1.6, 1.6), MC.mat('#f2f2f2'), [1.95, 1.2, 0]); MC.add(g, MC.geo.box(0.05, 0.3, 0.3), new T3.MeshBasicMaterial({ color: '#fffbe0' }), [2.26, 0.9, 0.5]); }
+    for (let w = 0; w < 2; w++) winScenes.push({ g, x: -0.8 + w * 1.6, c, w });
+  }
+  // Belegung der Fenster (von vorn nach hinten)
+  const H = {};
+  const occupy = (k, name, o) => { const ws = winScenes[k]; const h = MC.make(name, { scale: o.s || 0.62 }); h.root.position.set(ws.x + (o.dx || 0), o.y || 0.55, -0.1); ws.g.add(h.root); return h; };
+  H.cg = occupy(1, 'chickenguy', { s: 0.75, y: 0.95 });
+  H.gm = occupy(3, 'grandma', { s: 0.62 });
+  H.mm2 = occupy(5, 'minoman', { s: 0.58 });
+  H.mu2 = occupy(4, 'munch', { s: 0.6 });
+  // Fenster 9: reservierter Platz des abwesenden Gottes
+  MC.add(winScenes[7].g, MC.geo.box(0.7, 0.9, 0.5), MC.mat('#2f4fa8'), [winScenes[7].x, 1.3, -0.25]);
+  MC.add(winScenes[7].g, new T3.PlaneGeometry(0.6, 0.22), new T3.MeshBasicMaterial({ map: MP.textTex('RESERVIERT:\nUBERAN MINO', { w: 256, h: 96, bg: '#fff', fg: '#c4002a', font: '700 30px "Barlow Condensed"', lh: 34 }) }), [winScenes[7].x, 1.7, -0.05]);
+  // Fenster 11: ein Hot Dog als Fahrgast
+  const dog = new T3.Group();
+  MC.add(dog, MC.geo.cyl(0.18, 0.18, 0.9, 8), MC.mat('#e2b06a'), [0, 0, -0.08], [0, 0, Math.PI / 2], [1, 1, 0.7]);
+  MC.add(dog, MC.geo.cyl(0.11, 0.11, 1.1, 8), MC.mat('#b5482c'), [0, 0.1, 0], [0, 0, Math.PI / 2]);
+  dog.position.set(winScenes[2].x, 1.4, -0.1); dog.rotation.z = 1.2; winScenes[2].g.add(dog);
+  const foamT = MP.foam(scene, 60, 3);
+  // Chicken Guy surft am Ende auf dem Dach
+  const cgRoof = MC.make('chickenguy', { scale: 0.8 }); train.add(cgRoof.root); cgRoof.root.position.set(-4 * (CAR + 0.15), 2.2, 0);
+  // ---------- Bahnsteig-Figuren ----------
+  const mm = MC.make('minoman'); scene.add(mm.root); mm.root.position.set(0.62, 0.6, 2.2);
+  const mu = MC.make('munch'); scene.add(mu.root); mu.root.position.set(-0.72, 0.6, 1.9);
+  const papers = [];
+  for (let i = 0; i < 10; i++) { const p = MC.add(scene, new T3.PlaneGeometry(0.22, 0.3), new T3.MeshLambertMaterial({ color: '#f4efe2', side: T3.DoubleSide }), [0, 0, 0]); papers.push(p); }
+  // Zugweg s(t): schnell rein, langsam vorbei (Fenster lesbar), schnell raus
+  function trainS(t) {
+    const t0 = DROP, t1 = B(9.5), t2 = B(21), t3 = B(27);
+    const v0 = 22, v1 = 2.6, v2 = 26;
+    if (t < t0) return -40;
+    if (t < t1) return -14 + v0 * (t - t0);
+    const s1 = -14 + v0 * (t1 - t0);
+    if (t < t2) return s1 + v1 * (t - t1);
+    const s2 = s1 + v1 * (t2 - t1);
+    return s2 + v2 * (t - t2);
+  }
+  const flash = $('flash'), glc = st.canvas, ch = $('ch'), cm = $('cm'), cs = $('cs'), lauft = $('lauft');
+  const tl = gsap.timeline({ paused: true });
+  MV.onFrame((t) => {
+    const beat = t / MV.BEAT, after = MV.after(t);
+    const fever = MV.clamp((beat - 20) / 2, 0, 1) * MV.clamp((27 - beat) / 1.5, 0, 1);
+    // Anzeiger
+    let pi = 0; for (let k = 0; k < PLAN.length; k++) if (beat >= PLAN[k][0]) pi = k;
+    const cur = PLAN[pi], prv = PLAN[Math.max(0, pi - 1)], tc = pi ? B(cur[0]) : -1;
+    const W = [5, 6, 14, 1];
+    ['a', 'b', 'c', 'd'].forEach((c, i) => { flap('r1' + c, cur[1][i], prv[1][i], tc, t, W[i]); flap('r2' + c, cur[2][i], prv[2][i], tc, t, W[i]); });
+    flap('r1e', cur[1][4], prv[1][4], tc, t); flap('r2e', cur[2][4], prv[2][4], tc, t);
+    if (fever > 0.3) flap('r1c', 'CHICKEN GUY', 'ÜBERALL', B(Math.floor(beat)), t, 14);
+    lauft.style.left = (1080 - ((t * 240) % 3600)) + 'px';
+    // Uhr: steht auf 16:20, im Fieber drehen die Zeiger durch
+    const spin = fever * t * 900;
+    ch.style.transform = `rotate(${120 + spin * 0.2}deg)`; cm.style.transform = `rotate(${120 + spin}deg)`; cs.style.transform = `rotate(${(Math.floor(t) * 6 + spin * 3) % 360}deg)`;
+    // Zug
+    const s = trainS(t);
+    train.position.set(s, 0, 0);
+    train.visible = after && s < 60;
+    // Fenster-Szenen
+    MC.move(H.cg, beat, beat > 20 ? 'twerk' : 'flap', { yaw: 0.2 }); MC.face(H.cg, t, 0.7, 1);
+    MC.move(H.gm, beat, beat < 12.4 ? 'shake' : 'blast', { yaw: 0.2 }); MC.face(H.gm, t, beat > 12 ? 0.8 : 0.2, 1);
+    H.gm.root.updateMatrixWorld(true);
+    foamT(t, B(12.4), H.gm.cap.getWorldPosition(new T3.Vector3()), 0.45, 1.6);
+    MC.move(H.mm2, beat, 'mic', { yaw: 0 }); MC.face(H.mm2, t, MV.talk('5a', t) || 0.3 * Math.abs(Math.sin(t * 10)), 0);
+    MC.move(H.mu2, beat, 'eat', { yaw: 0 }); MC.face(H.mu2, t, 0.3 * Math.max(0, Math.sin(t * 13)), 0);
+    cgRoof.root.visible = beat > 19;
+    MC.move(cgRoof, beat, 'runningman', { yaw: Math.PI / 2 }); MC.face(cgRoof, t, 0.9, 1);
+    dog.rotation.y = t * 2;
+    // Mino Man berichtet: Krawatte und Haltung im Fahrtwind
+    const wind = train.visible ? MV.clamp(Math.abs(s) < 30 ? 1 : 0, 0, 1) * (beat < 10 || (beat > 21 && beat < 27) ? 1 : 0.4) : 0;
+    const talk = MV.talk('5a', t);
+    MC.move(mm, beat, 'mic', { yaw: -0.15, extra: { spine: [0, 0, 0.12 * wind], neck: [0, 0, 0.1 * wind * Math.sin(t * 20)] } });
+    mm.tie.rotation.z = -1.3 * wind + 0.2 * wind * Math.sin(t * 30) - (t > B(27) ? 1.2 : 0); // bleibt verweht
+    MC.face(mm, t, talk, 0);
+    MC.move(mu, beat, 'eat', { yaw: 0.3, extra: { spine: [0, 0, 0.15 * wind] } });
+    MC.face(mu, t, 0.3 * Math.max(0, Math.sin(t * 13)), 0);
+    mu.j.folder.scale.y = after ? 0.3 : 1;
+    // Papier fliegt beim Drop davon
+    papers.forEach((p, i) => {
+      const a = t - DROP - MV.hash(i) * 0.2;
+      p.visible = a > 0 && a < 3;
+      if (!p.visible) return;
+      p.position.set(-0.5 + a * (2.5 + MV.hash(i + 2) * 2), 1.4 + a * (0.6 + MV.hash(i + 5)) - 0.3 * a * a, 1.9 - MV.hash(i + 9));
+      p.rotation.set(a * 5 + i, a * 3, a * 4);
+    });
+    // Kamera: ruhig vor dem Drop (Scheinwerfer kommt), Wackeln während der Durchfahrt
+    const shake = wind * 0.035;
+    cam.position.set(0.1 * Math.sin(t * 0.4) + shake * Math.sin(t * 60), 2.2 + shake * Math.cos(t * 53), 10.5);
+    cam.lookAt(0, 1.62, 0);
+    // Scheinwerfer im Aufbau: Licht von links wird heller
+    const head = MV.clamp((t - B(4.5)) / B(3.5), 0, 1);
+    scene.userData.key.color.setRGB(0.95 + 0.05 * head, 0.97, 1);
+    scene.userData.key.intensity = 1.2 + 2.5 * head * head * (after ? 0 : 1);
+    scene.userData.key.position.set(-6 + 3 * head, 2.5, 2);
+    flash.style.opacity = 0.7 * MV.imp(t, DROP, 0.1);
+    glc.style.filter = fever > 0 ? `hue-rotate(${fever * ((t * 260) % 360)}deg) saturate(${1 + fever})` : 'none';
+    st.render(scene, cam);
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

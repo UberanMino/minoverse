@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>02 SIM MINO</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/three.min.js"></script>
+<script src="lib/mv.js"></script>
+<script src="lib/cast.js"></script>
+<script src="lib/props.js"></script>
+<script src="audio/vo_02.js"></script>
+<style>
+  /* WELT-RAHMEN "SIM MINO": Der Minoverse ist ein Gottspiel, dessen Spieler (Uberan Mino) abwesend ist.
+     Konstanten: isometrische Insel mit Bezirken, Spiel-Oberfläche (Menüleiste, Statusleiste mit "Gott: ABWESEND",
+     Werkzeugleiste, Meldungs-Ticker), Berater-Fenster mit Mino Man, Katastrophen-Menü, der Cursor des
+     abwesenden Gottes zuckt von allein. Musik ist Wetter, das über die Insel zieht. */
+  #sea { background: radial-gradient(ellipse at 50% 45%, #2a7fd4 0%, #12407a 70%, #0a2346 100%); }
+  #gl { position: absolute; inset: 0; }
+  #wave { position: absolute; inset: 0; width: 1080px; height: 1920px; image-rendering: pixelated; mix-blend-mode: screen; opacity: 0; }
+  .ui { font-family: 'Silkscreen', monospace; color: #f6e7b0; }
+  .panel { background: linear-gradient(180deg, rgba(40,20,70,.92), rgba(20,10,40,.92)); border: 4px solid #d9a93a; box-shadow: 0 0 0 4px #3b1d00, 6px 8px 0 rgba(0,0,0,.45); }
+  #menu { position: absolute; left: 0; right: 0; top: 0; height: 74px; display: flex; gap: 34px; align-items: center; padding-left: 26px; font: 700 34px 'Silkscreen'; border-width: 0 0 4px 0; }
+  #menu span.on { background: #d9a93a; color: #2a1040; padding: 0 10px; }
+  #status { position: absolute; left: 0; right: 0; top: 78px; height: 96px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 0 26px; font: 400 30px 'Silkscreen'; line-height: 1.15; border-width: 0 0 4px 0; }
+  #status b { color: #fff; font-weight: 700; }
+  #god { color: #ff5a5a !important; }
+  #tools { position: absolute; left: 18px; top: 260px; width: 110px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  #tools i { width: 80px; height: 80px; display: grid; place-items: center; font: 700 26px 'Silkscreen'; color: #2a1040; background: #f0d79a; border: 4px solid #3b1d00; font-style: normal; }
+  #tools i.hot { background: #ff5a5a; color: #fff; }
+  #news { position: absolute; left: 0; right: 0; top: 1590px; height: 92px; overflow: hidden; border-width: 4px 0 4px 0; }
+  #news .lab { position: absolute; left: 0; top: 0; bottom: 0; width: 250px; background: #d9a93a; color: #2a1040; font: 700 32px 'Silkscreen'; display: grid; place-items: center; z-index: 2; }
+  #news .run { position: absolute; left: 270px; top: 22px; white-space: nowrap; font: 400 38px 'Pixelify Sans'; color: #fff; }
+  #adv { position: absolute; left: 150px; top: 1180px; width: 860px; height: 330px; }
+  #adv .ttl { height: 56px; background: #d9a93a; color: #2a1040; font: 700 30px 'Silkscreen'; display: flex; align-items: center; padding-left: 16px; }
+  #adv .port { position: absolute; left: 18px; top: 74px; width: 230px; height: 230px; border: 4px solid #d9a93a; background: #f0d79a; overflow: hidden; }
+  #adv .txt { position: absolute; left: 270px; top: 80px; right: 20px; font: 400 40px 'Pixelify Sans'; color: #fff; line-height: 1.2; }
+  #cat { position: absolute; left: 470px; top: 74px; width: 560px; }
+  #cat div { font: 400 34px 'Pixelify Sans'; color: #fff; padding: 14px 22px; border-bottom: 2px solid rgba(217,169,58,.4); }
+  #cat div.sel { background: #ff5a5a; }
+  #cursor { position: absolute; left: 0; top: 0; width: 80px; height: 100px; z-index: 50; }
+  #cursor .afk { position: absolute; left: 60px; top: 70px; font: 700 24px 'Silkscreen'; color: #fff; background: #ff5a5a; padding: 2px 8px; white-space: nowrap; }
+  .note { position: absolute; padding: 10px 16px; font: 400 32px 'Pixelify Sans'; color: #2a1040; background: #fff6d0; border: 4px solid #3b1d00; box-shadow: 5px 6px 0 rgba(0,0,0,.4); white-space: nowrap; opacity: 0; }
+  .note::after { content: ''; position: absolute; left: 30px; bottom: -22px; border: 11px solid transparent; border-top-color: #3b1d00; }
+  #save { position: absolute; left: 140px; top: 760px; width: 800px; height: 300px; opacity: 0; }
+  #save .ttl { height: 56px; background: #d9a93a; color: #2a1040; font: 700 30px 'Silkscreen'; display: flex; align-items: center; padding-left: 16px; }
+  #save .t { padding: 28px 30px 10px; font: 400 42px 'Pixelify Sans'; color: #fff; }
+  #save .bar { margin: 10px 30px; height: 46px; border: 4px solid #d9a93a; }
+  #save .bar i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #ff5a5a 0 30px, #ffb35a 30px 60px); }
+  #flash { background: #fff; opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="12.8" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="12.8" data-track-index="9" src="audio/02.mp3"></audio>
+  <div id="sea" class="clip"></div>
+  <div id="gl"></div>
+  <canvas id="wave" width="108" height="192"></canvas>
+  <div id="notes" class="clip"></div>
+  <div id="menu" class="ui panel"><span>DATEI</span><span>ZEIT</span><span id="mcat">KATASTROPHEN</span><span>HILFE</span></div>
+  <div id="status" class="ui panel">
+    <div>MINOVERSE · JAHR <b>0003</b><br>EINWOHNER: <b id="pop">4</b></div>
+    <div>HOT DOGS: <b id="dogs">0</b><br>GOTT: <b id="god">ABWESEND</b></div>
+  </div>
+  <div id="tools" class="ui panel"><i>STR</i><i>ZONE</i><i>WTR</i><i id="tfreq">FRQ</i><i id="tcat">!!!</i><i>H.D.</i></div>
+  <div id="cat" class="ui panel" style="opacity:0">
+    <div>ERDBEBEN</div><div>PEPSI-ERUPTION</div><div>MUSIK-FRONT</div><div id="vegan">VEGANER HOT-DOG-REGEN</div>
+  </div>
+  <div id="adv" class="ui panel"><div class="ttl">BERATER FÜR WAHRHEIT</div><div class="port" id="port"></div><div class="txt" id="advt"></div></div>
+  <div id="news" class="ui panel"><div class="lab">MELDUNGEN</div><div class="run" id="run">PEPSI GRANDMA WURDE ERNEUT IM DRITTEN BEZIRK GESEHEN – KEINE WEITEREN DETAILS · AMT FÜR WETTERLAGEN: ES IST WETTER · DIE HOT-DOG-FABRIK STEHT IN KEINEM OFFIZIELLEN REGISTER ·</div></div>
+  <div id="save" class="ui panel"><div class="ttl">SYSTEM</div><div class="t">Spieler abwesend.<br>Spiel wird gespeichert …</div><div class="bar"><i id="savebar"></i></div></div>
+  <div id="cursor"><svg width="80" height="100" viewBox="0 0 16 20"><path d="M0 0 L0 15 L4 11 L7 18 L9 17 L6 10 L11 10 Z" fill="#f6e7b0" stroke="#3b1d00" stroke-width="1.2"/></svg><div class="afk">AFK</div></div>
+  <div id="flash" class="clip"></div>
+</div>
+<script>
+  const B = MV.b, DROP = MV.DROP, $ = (id) => document.getElementById(id);
+  MC.style = 'flat';
+  const st = MC.stage($('gl'), { w: 1080, h: 1920, pix: 2, hemi: 1.1, keyI: 1.4 });
+  const T3 = THREE, scene = st.scene;
+  // isometrische Kamera
+  const cam = new T3.OrthographicCamera(-4.5, 4.5, 8, -8, 0.1, 200);
+  const ISO = new T3.Vector3(10, 9, 10);
+  // ---------- Insel ----------
+  const N = 12, tiles = [];
+  const grass = ['#6fbf4a', '#63b043', '#7ccb52'], road = '#8a8f99';
+  for (let x = 0; x < N; x++) for (let z = 0; z < N; z++) {
+    const dx = x - 5.5, dz = z - 5.5, d = Math.sqrt(dx * dx + dz * dz) + 1.2 * MV.noise(x * 0.9, z * 1.3);
+    if (d > 6.2) continue;
+    const isRoad = x === 6 || z === 5;
+    const h = d > 5.3 ? 0.25 : 0.45;
+    const col = d > 5.3 ? '#e8d48a' : isRoad ? road : grass[(x + z) % 3];
+    const m = MC.add(scene, MC.geo.box(1, h, 1), MC.mat(col), [dx, h / 2 - 0.2, dz]);
+    tiles.push({ m, x: dx, z: dz, h, road: isRoad, d });
+  }
+  // Gebäude (wippen nach dem Drop auf den Beat)
+  const blds = [];
+  function building(x, z, w, h, d, col, roof) {
+    const g = new T3.Group();
+    MC.add(g, MC.geo.box(w, h, d), MC.mat(col), [0, h / 2, 0]);
+    for (let i = 0; i < Math.floor(h / 0.35); i++) MC.add(g, MC.geo.box(w * 1.01, 0.08, d * 0.6), new T3.MeshBasicMaterial({ color: '#ffe9a0' }), [0, 0.25 + i * 0.35, 0]);
+    if (roof) MC.add(g, new T3.ConeGeometry(Math.max(w, d) * 0.75, 0.5, 4), MC.mat(roof), [0, h + 0.25, 0], [0, Math.PI / 4, 0]);
+    g.position.set(x, 0.25, z);
+    scene.add(g);
+    blds.push(g);
+    return g;
+  }
+  const R = MV.rng(3);
+  for (let i = 0; i < 26; i++) {
+    const t = tiles[Math.floor(R() * tiles.length)];
+    const near = [[2.4, 2.4], [2.2, -1.6], [0.2, 0.6], [-0.8, 0.6], [-0.3, 0.6]].some(([px, pz]) => Math.hypot(t.x - px, t.z - pz) < (px === 2.4 ? 2.1 : 1.4));
+    if (t.road || t.d > 4.6 || t.used || near) continue;
+    t.used = true;
+    building(t.x, t.z, 0.7, 0.4 + R() * 1.4, 0.7, ['#f2efe6', '#e8b4a0', '#a8c8e8', '#f0d58a', '#d6a6e0'][i % 5], i % 3 ? null : '#c0392b');
+  }
+  // Wahrzeichen: Hot-Dog-Fabrik mit riesigem Hot Dog, Bundesamt, Dritter Bezirk, Sendeturm
+  const fab = building(-2.5, -2.5, 1.8, 1.3, 1.6, '#9aa0aa', null);
+  MC.add(fab, MC.geo.cyl(0.18, 0.22, 1.6, 8), MC.mat('#6d727c'), [0.6, 1.9, -0.5]);
+  function hotdog(parent, s, vegan) {
+    const g = new T3.Group();
+    MC.add(g, MC.geo.cyl(0.18, 0.18, 1.1, 8), MC.mat('#e2b06a'), [0, 0, -0.1], [0, 0, Math.PI / 2], [1, 1, 0.7]);
+    MC.add(g, MC.geo.cyl(0.18, 0.18, 1.1, 8), MC.mat('#e2b06a'), [0, 0, 0.1], [0, 0, Math.PI / 2], [1, 1, 0.7]);
+    MC.add(g, MC.geo.cyl(0.11, 0.11, 1.35, 8), MC.mat(vegan ? '#8fbf4a' : '#b5482c'), [0, 0.1, 0], [0, 0, Math.PI / 2]);
+    MC.add(g, MC.geo.box(1.0, 0.03, 0.05), MC.mat('#f2c230'), [0, 0.22, 0]);
+    g.scale.setScalar(s);
+    parent.add(g);
+    return g;
+  }
+  const bigDog = hotdog(fab, 1.0, false); bigDog.position.set(-0.4, 1.75, -0.45);
+  const amt = building(2.6, -2.6, 1.3, 1.0, 1.1, '#3a5aa8', null);
+  const amtLight = MC.add(amt, MC.geo.box(0.4, 0.12, 0.15), new T3.MeshBasicMaterial({ color: '#ff3030' }), [0, 1.1, 0]);
+  const tower = building(-2.8, 2.4, 0.4, 2.8, 0.4, '#d0d4dc', null);
+  MC.add(tower, MC.geo.ball(0.3, 8, 6), MC.mat('#ff5a5a'), [0, 3.0, 0]);
+  [[1.4, 1.6], [2.1, 1.1], [1.2, 2.5], [3.0, 0.9]].forEach(([x, z]) => building(x, z, 0.55, 0.45, 0.55, '#f6e2c8', '#e05a3a'));
+  // Wolken
+  const clouds = [];
+  for (let i = 0; i < 6; i++) { const c = new T3.Group(); for (let k = 0; k < 4; k++) MC.add(c, MC.geo.ball(0.4 + MV.hash(i * 7 + k) * 0.3, 7, 5), MC.mat('#ffffff'), [k * 0.45, MV.hash(i + k) * 0.2, MV.hash(k * 3 + i) * 0.3]); c.position.set(-7 + i * 2.6, 4.5, -4 + (i % 3) * 3); scene.add(c); clouds.push(c); }
+  // ---------- Bewohner (klein) ----------
+  const S = 0.42;
+  const mm = MC.make('minoman', { scale: S }), cg = MC.make('chickenguy', { scale: S }), gm = MC.make('grandma', { scale: S }), mu = MC.make('munch', { scale: S });
+  [mm, cg, gm, mu].forEach((h) => scene.add(h.root));
+  gm.root.position.set(2.4, 0.25, 2.4);  // Dritter Bezirk
+  mu.root.position.set(2.2, 0.25, -1.6); // vor dem Bundesamt
+  cg.root.position.set(-2.0, 1.55, -1.85); cg.root.visible = false; // Dach der Fabrik
+  const foam = MP.foam(scene, 70, 8);
+  // ---------- Hot-Dog-Regen (vegan) ----------
+  const rain = [];
+  for (let i = 0; i < 70; i++) { const d = hotdog(scene, 0.32, true); d.userData = { x: (MV.hash(i) - 0.5) * 10, z: (MV.hash(i + 50) - 0.5) * 10, d: MV.hash(i + 99) * 7.5, r: MV.hash(i + 7) * 6 }; d.visible = false; rain.push(d); }
+  // ---------- Berater-Porträt (zweite kleine Bühne) ----------
+  const ps = MC.stage($('port'), { w: 230, h: 230, pix: 2, bg: '#f0d79a', keyI: 1.5 });
+  const pmm = MC.make('minoman'); ps.scene.add(pmm.root);
+  ps.camera.fov = 28; ps.camera.aspect = 1; ps.camera.position.set(0.18, 1.78, 0.95); ps.camera.lookAt(0, 1.72, 0); ps.camera.updateProjectionMatrix();
+  // ---------- Plasma-Front (Musik = Wetter) ----------
+  const wv = $('wave'), wg = wv.getContext('2d'), wimg = wg.createImageData(108, 192);
+  function plasma(t, front) {
+    for (let y = 0; y < 192; y++) for (let x = 0; x < 108; x++) {
+      const i = (y * 108 + x) * 4;
+      const v = Math.sin(x * 0.11 + t * 2) + Math.sin(y * 0.07 - t * 1.6) + Math.sin((x + y) * 0.06 + t * 3);
+      const cl = Math.sin(x * 0.05 + t * 0.7) * Math.sin(y * 0.031 - t * 0.5) + 0.5 * Math.sin((x - y) * 0.04 + t);
+      const edge = MV.clamp((front * 260 - (x + y * 0.4)) / 30, 0, 1) * MV.clamp((cl - 0.15) * 2.2, 0, 1);
+      wimg.data[i] = (128 + 127 * Math.sin(v * 2 + t)) * edge;
+      wimg.data[i + 1] = (128 + 127 * Math.sin(v * 2 + 2 + t)) * edge;
+      wimg.data[i + 2] = (128 + 127 * Math.sin(v * 2 + 4 + t)) * edge;
+      wimg.data[i + 3] = 255;
+    }
+    wg.putImageData(wimg, 0, 0);
+  }
+  // ---------- Meldungen über der Insel (Sprechblasen an 3D-Orten) ----------
+  const NOTES = [
+    { t0: 0, t1: B(7), at: [-2.5, 3.6, -2.5], txt: 'VERMISST: CHICKEN GUY' },
+    { t0: B(10), t1: B(13), at: [2.4, 1.4, 2.4], txt: 'Pepsi Grandma: Eruption im 3. Bezirk' },
+    { t0: B(13), t1: B(16), at: [2.2, 1.4, -1.6], txt: 'Akte „Regen“ wurde gegessen' },
+    { t0: B(16), t1: B(19), at: [-2.0, 2.9, -1.85], txt: 'Chicken Guy gesichtet? Unbestätigt.' },
+    { t0: B(19), t1: B(22), at: [0.2, 1.4, 0.6], txt: 'Mino Man berichtet live' },
+  ];
+  const noteEls = NOTES.map((n) => { const e = document.createElement('div'); e.className = 'note'; e.textContent = n.txt; $('notes').appendChild(e); return e; });
+  // Kamerafahrten: [Schlag, Ziel x, z, Zoom]
+  const SHOTS = [[0, 0, 0, 1.0], [5, -1.2, -1.2, 1.3], [10, 2.4, 2.4, 4.2], [13, 2.2, -1.6, 4.2], [16, -2.0, -1.85, 3.6], [19, 0.2, 0.6, 4.4], [22, 0, 0, 1.0], [26, 0, 0, 0.95]];
+  function camAt(t) {
+    const b = t / MV.BEAT;
+    let i = 0; for (let k = 0; k < SHOTS.length; k++) if (b >= SHOTS[k][0]) i = k;
+    const A = SHOTS[Math.max(0, i - 1)], Bs = SHOTS[i];
+    const k = i === 0 ? 1 : MV.ease.inout(MV.clamp((t - B(Bs[0])) / 0.35, 0, 1));
+    return [MV.lerp(A[1], Bs[1], k), MV.lerp(A[2], Bs[2], k), MV.lerp(A[3], Bs[3], k)];
+  }
+  const advt = $('advt'), adv = $('adv'), cat = $('cat'), vegan = $('vegan'), cursor = $('cursor'), mcat = $('mcat'), tcat = $('tcat');
+  const pop = $('pop'), dogs = $('dogs'), run = $('run'), save = $('save'), savebar = $('savebar'), flash = $('flash'), glc = st.canvas;
+  const ADV = 'Mein Gott. Ihre Welt versinkt im Chaos.';
+  // Cursor des abwesenden Gottes: Punkte auf den Beats
+  const CUR = [[0, 760, 1000], [3, 700, 960], [5, 560, 40], [6, 640, 330], [7, 700, 330], [7.6, 720, 345], [9, 820, 900], [26, 600, 940], [31, 640, 990]];
+  function curAt(t) {
+    const b = t / MV.BEAT;
+    let i = 0; for (let k = 0; k < CUR.length; k++) if (b >= CUR[k][0]) i = k;
+    const A = CUR[i], Bc = CUR[Math.min(i + 1, CUR.length - 1)];
+    const k = Bc === A ? 0 : MV.ease.out(MV.clamp((b - A[0]) / Math.max(0.01, (Bc[0] - A[0])) * 1.6, 0, 1));
+    const jit = 6 * Math.sin(t * 23) * (b > 8 && b < 26 ? 1 : 0.3);
+    return [MV.lerp(A[1], Bc[1], k) + jit, MV.lerp(A[2], Bc[2], k) + jit];
+  }
+
+  const tl = gsap.timeline({ paused: true });
+  MV.onFrame((t) => {
+    const beat = t / MV.BEAT, after = MV.after(t);
+    const pulse = after && t < B(30) ? MV.pulse(t, 7, 1, DROP) : 0;
+    // Kamera
+    const [cx, cz, zm] = camAt(t);
+    const ly = Math.abs(cx + 2.0) < 0.3 && zm > 2 ? 1.9 : zm > 2 ? 0.75 : 0.4;
+    cam.position.set(cx + ISO.x, ISO.y + ly, cz + ISO.z);
+    cam.lookAt(cx, ly, cz);
+    cam.zoom = zm * (1 + 0.03 * pulse); cam.updateProjectionMatrix();
+    // Insel lebt: Wellen, Wolken, Gebäude wippen nach dem Drop
+    tiles.forEach((tt, i) => { tt.m.position.y = tt.h / 2 - 0.2 + (after ? 0.08 * pulse * Math.sin(i) : 0.02 * Math.sin(t * 2 + i)); });
+    blds.forEach((g, i) => { g.scale.y = 1 + (after ? 0.18 * pulse * (0.5 + MV.hash(i)) : 0); g.rotation.y = after && beat > 22 && beat < 28 ? 0.2 * Math.sin(t * 6 + i) : 0; });
+    clouds.forEach((c, i) => { c.position.x = -7 + ((i * 2.6 + t * 0.5) % 15); c.visible = zm < 2; });
+    bigDog.rotation.y = t * (after ? 3 : 0.6);
+    amtLight.material.color.set(Math.floor(t * 4) % 2 ? '#ff3030' : '#3060ff');
+    // Figuren
+    MC.move(gm, beat, t > B(10) && t < B(13) ? 'blast' : t > B(9) ? 'shake' : 'idle', { yaw: 0.6 }); MC.face(gm, t, 0.3, 0.6);
+    gm.root.updateMatrixWorld(true);
+    foam(t, B(10), gm.cap.getWorldPosition(new T3.Vector3()), 0.55, 1.4);
+    MC.move(mu, beat, 'eat', { yaw: 0.7 }); MC.face(mu, t, 0.3 * Math.max(0, Math.sin(t * 14)), 0, {});
+    mu.j.folder.scale.y = 1 - 0.85 * MV.clamp((t - B(13)) / B(3), 0, 1);
+    cg.root.visible = t > B(16);
+    MC.move(cg, beat, beat > 22 ? 'twerk' : 'flap', { yaw: 0.6 }); MC.face(cg, t, 0.7, 0.6);
+    const mx = MV.lerp(-0.8, 0.2, MV.clamp(t / B(19), 0, 1));
+    mm.root.position.set(mx, 0.25, 0.6);
+    MC.move(mm, beat, t > B(19) ? 'mic' : 'walk', { yaw: t > B(19) ? 0.8 : Math.PI / 2 }); MC.face(mm, t, t > B(19) && t < B(22) ? 0.4 + 0.4 * Math.sin(t * 12) : 0, 0);
+    // Regen
+    rain.forEach((d) => {
+      const u = d.userData, a = t - DROP - u.d * 0.35;
+      const fall = ((a % 1.6) + 1.6) % 1.6;
+      d.visible = after && a > 0 && t < B(30);
+      d.position.set(u.x + cx * 0.3, 6 - fall * 4.2, u.z + cz * 0.3);
+      d.rotation.set(u.r + t * 3, t * 2, u.r);
+    });
+    // Plasma-Front ab dem Drop
+    const front = MV.clamp((t - DROP) / B(6), 0, 1.4);
+    wv.style.opacity = after && t < B(30) ? 0.6 : 0;
+    if (after && t < B(30)) plasma(t, front);
+    glc.style.filter = beat > 22 && beat < 28 ? `hue-rotate(${(t * 240) % 360}deg) saturate(1.6)` : 'none';
+    st.render(scene, cam);
+    // Sprechblasen an 3D-Positionen
+    NOTES.forEach((n, i) => {
+      const on = t >= n.t0 && t < n.t1;
+      noteEls[i].style.opacity = on ? 1 : 0;
+      if (!on) return;
+      const v = new T3.Vector3(n.at[0], n.at[1], n.at[2]).project(cam);
+      const k = MV.ease.back(MV.clamp((t - n.t0) / 0.15, 0, 1));
+      noteEls[i].style.transform = `translate(${MV.clamp((v.x * 0.5 + 0.5) * 1080 - 40, 140, 1060 - noteEls[i].offsetWidth)}px, ${(-v.y * 0.5 + 0.5) * 1920 - 90}px) scale(${k})`;
+    });
+    // Berater
+    const talk = MV.talk('2a', t);
+    adv.style.opacity = t < B(7.4) ? 1 : 0;
+    adv.style.transform = `scale(${MV.ease.back(MV.clamp(t / 0.2, 0, 1))})`;
+    MV.type(advt, ADV, MV.clamp((t - 0.25) / 2.0, 0, 1));
+    MC.move(pmm, beat, 'idle'); MC.face(pmm, t, talk, 0);
+    ps.render();
+    // Katastrophen-Menü öffnet sich von selbst, Klick auf den Drop
+    const menuOpen = t >= B(5) && t < DROP + 0.25;
+    cat.style.opacity = menuOpen ? 1 : 0;
+    mcat.className = menuOpen ? 'on' : '';
+    vegan.className = t >= B(7) && t < DROP + 0.25 ? 'sel' : '';
+    tcat.className = after && Math.floor(beat) % 2 ? 'hot' : '';
+    const [px, py] = curAt(t);
+    const clickK = MV.imp(t, DROP - 0.02, 0.08);
+    cursor.style.transform = `translate(${px}px, ${py}px) scale(${1 - 0.2 * clickK})`;
+    flash.style.opacity = 0.6 * MV.imp(t, DROP, 0.12);
+    // Zähler
+    const nd = after ? Math.floor(Math.pow(10, MV.clamp((t - DROP) / B(16), 0, 1) * 7)) : 0;
+    dogs.textContent = nd >= 9999999 ? '9.999.999 (VEGAN)' : nd.toLocaleString('de-DE');
+    pop.textContent = after && beat > 22 ? ['4', '4?', '3,5', '4', '∞', '4'][Math.floor(beat) % 6] : '4';
+    run.style.transform = `translateX(${-((t * 220) % 2600)}px)`;
+    // Speichern-Dialog am Ende
+    const sv = t >= B(25.8);
+    save.style.opacity = sv ? 1 : 0;
+    save.style.transform = `scale(${sv ? MV.ease.back(MV.clamp((t - B(25.8)) / 0.2, 0, 1)) : 0})`;
+    savebar.style.width = MV.clamp((t - B(26)) / B(5.5), 0, 1) * 100 + '%';
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

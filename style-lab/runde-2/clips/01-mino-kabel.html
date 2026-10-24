@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>01 MINO-KABEL</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/three.min.js"></script>
+<script src="lib/mv.js"></script>
+<script src="lib/cast.js"></script>
+<script src="lib/props.js"></script>
+<script src="audio/vo_01.js"></script>
+<style>
+  /* WELT-RAHMEN "MINO-KABEL": Der Minoverse ist ein Kabelfernseher. Konstanten: Röhrenbild mit Scanlines,
+     grünes OSD (Programmplatz + Sendername) oben rechts, Senderlogo oben links, der Kabel-Ticker unten läuft
+     über ALLE Sender weiter, gezappt wird auf den Beat, Mino Man moderiert in jedem Sender (anderer Titel),
+     Sendeschluss = Bildröhre geht aus. */
+  #tv { overflow: hidden; background: #000; }
+  .bg, .ov { position: absolute; inset: 0; opacity: 0; }
+  #gl { position: absolute; inset: 0; }
+  .bug { position: absolute; left: 54px; top: 92px; font: 700 44px 'Oswald'; color: #fff; letter-spacing: 2px; padding: 6px 16px; border: 4px solid rgba(255,255,255,.85); background: rgba(0,0,0,.25); }
+  .lt { position: absolute; left: 0; right: 0; top: 1300px; }
+  .lt .name { margin-left: 60px; display: inline-block; background: #fff; color: #10183a; font: 700 54px 'Oswald'; padding: 6px 26px; letter-spacing: 1px; }
+  .lt .role { margin-left: 60px; display: block; width: fit-content; background: #10183a; color: #ffcc00; font: 700 34px 'Oswald'; padding: 6px 26px; letter-spacing: 2px; }
+  .chy { position: absolute; left: 0; right: 0; top: 1470px; height: 104px; background: #c4002a; color: #fff; font: 700 50px 'Oswald'; white-space: nowrap; overflow: hidden; display: flex; align-items: center; padding-left: 60px; letter-spacing: 1px; }
+  .chy b { background: #fff; color: #c4002a; padding: 0 16px; margin-right: 22px; }
+  #ticker { position: absolute; left: 0; right: 0; top: 1600px; height: 82px; background: #0b0f22; border-top: 6px solid #ffcc00; overflow: hidden; z-index: 5; }
+  #ticker .lab { position: absolute; left: 0; top: 0; bottom: 0; width: 220px; background: #ffcc00; color: #0b0f22; font: 700 40px 'Oswald'; display: grid; place-items: center; z-index: 2; }
+  #ticker .run { position: absolute; left: 240px; top: 10px; white-space: nowrap; font: 700 46px 'Oswald'; color: #fff; letter-spacing: 1px; }
+  #osd { position: absolute; right: 60px; top: 80px; text-align: right; font: 400 96px 'VT323'; color: #3cff5a; text-shadow: 0 0 12px rgba(60,255,90,.8), 4px 4px 0 #000; line-height: .9; z-index: 6; }
+  #osd small { display: block; font-size: 56px; }
+  #snow { position: absolute; inset: 0; width: 1080px; height: 1920px; image-rendering: pixelated; opacity: 0; z-index: 7; mix-blend-mode: normal; }
+  #crt { pointer-events: none; z-index: 20;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 3px, transparent 3px 6px),
+                radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(0,0,0,.65) 100%); }
+  #frame { pointer-events: none; z-index: 21; border-radius: 70px; box-shadow: 0 0 0 40px #050505, inset 0 0 90px rgba(0,0,0,.9); }
+  #off { z-index: 30; background: #000; pointer-events: none; }
+  #off i { position: absolute; left: 50%; top: 50%; width: 1080px; height: 8px; margin: -4px 0 0 -540px; background: #fff; box-shadow: 0 0 40px 10px #bfe8ff; }
+  /* Kanal-Hintergründe */
+  #bg1 { background: radial-gradient(ellipse at 50% 30%, #2b4cbf 0%, #0c1640 60%, #050a20 100%); }
+  #bg1 .screen { position: absolute; left: 90px; top: 250px; width: 900px; height: 500px; background: linear-gradient(135deg, #0d1a52, #1f3fbf); border: 8px solid #8fb0ff; box-shadow: 0 0 60px rgba(120,160,255,.6); }
+  #bg1 .screen .h { position: absolute; left: 40px; top: 30px; font: 400 120px 'Anton'; color: #fff; letter-spacing: 6px; }
+  #bg1 .screen .s { position: absolute; left: 44px; top: 190px; font: 700 50px 'Oswald'; color: #ffcc00; }
+  #bg1 .screen .q { position: absolute; right: 50px; top: 60px; width: 300px; height: 360px; border: 6px dashed #ffcc00; display: grid; place-items: center; font: 400 210px 'Anton'; color: #ffcc00; }
+  #bg1 .rays { position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg at 50% 110%, rgba(255,255,255,.05) 0 6deg, transparent 6deg 12deg); }
+  #bg2 { background: #062a1a; }
+  #bg2 canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  #bg3 { background: linear-gradient(180deg, #ff9fd6 0%, #ffd1ea 50%, #c2f1ff 100%); }
+  #bg3::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(255,255,255,.3) 0 30px, transparent 30px 60px); }
+  #bg4 { background: linear-gradient(180deg, #f6c04a 0%, #f39c3a 38%, #9bbf4a 38.2%, #5d8f2c 100%); }
+  #bg4 .sun { position: absolute; left: 640px; top: 260px; width: 260px; height: 260px; border-radius: 50%; background: #fff2b0; box-shadow: 0 0 120px #ffe08a; }
+  #bg4 .tree { position: absolute; bottom: 1180px; width: 0; height: 0; }
+  #bg5 { background: #222; }
+  #bg5 .bars { position: absolute; left: 0; right: 0; top: 0; height: 1920px; display: flex; }
+  #bg5 .bars i { flex: 1; }
+  #bg5 .circ { position: absolute; left: 140px; top: 560px; width: 800px; height: 800px; border-radius: 50%; border: 10px solid #fff; background: repeating-linear-gradient(90deg, #000 0 40px, #fff 40px 80px); overflow: hidden; }
+  #bg5 .circ .mid { position: absolute; left: 0; right: 0; top: 300px; height: 200px; background: #000; display: grid; place-items: center; font: 400 110px 'Anton'; color: #fff; letter-spacing: 8px; }
+  #bg6 { background: linear-gradient(180deg, #ff2fa0, #7a00ff); }
+  #bg6 .grid { position: absolute; left: -400px; right: -400px; top: 1000px; height: 920px; background: repeating-linear-gradient(90deg, rgba(0,255,255,.8) 0 4px, transparent 4px 120px), repeating-linear-gradient(0deg, rgba(0,255,255,.8) 0 4px, transparent 4px 120px); transform: perspective(500px) rotateX(60deg); transform-origin: 50% 0; }
+  #bg6 .ttl { position: absolute; left: 0; right: 0; top: 230px; text-align: center; font: 400 150px 'Bungee'; color: #fff; text-shadow: 8px 8px 0 #00e5ff, 16px 16px 0 #111; transform: rotate(-4deg); }
+  #bg8 { background: linear-gradient(180deg, #24324f, #101727); }
+  #bg8 .wall { position: absolute; left: 0; right: 0; top: 200px; height: 900px; background: repeating-linear-gradient(90deg, #1d2a48 0 180px, #22325a 180px 360px); }
+  #bg8 .seal { position: absolute; left: 340px; top: 300px; width: 400px; height: 400px; border-radius: 50%; border: 14px solid #e2b33a; display: grid; place-items: center; text-align: center; font: 700 44px 'Oswald'; color: #e2b33a; line-height: 1.05; letter-spacing: 2px; }
+  .price { position: absolute; right: 40px; top: 300px; width: 380px; height: 380px; background: #ffe600; clip-path: polygon(50% 0%, 61% 18%, 82% 7%, 80% 30%, 100% 35%, 85% 52%, 100% 68%, 79% 72%, 82% 94%, 61% 84%, 50% 100%, 39% 84%, 18% 94%, 21% 72%, 0% 68%, 15% 52%, 0% 35%, 20% 30%, 18% 7%, 39% 18%); display: grid; place-items: center; text-align: center; font: 400 70px 'Bungee'; color: #e0002a; line-height: .95; transform: rotate(10deg); }
+  .phone { position: absolute; left: 0; right: 0; top: 1470px; height: 104px; background: #ffe600; color: #111; font: 400 64px 'Bungee'; display: flex; align-items: center; justify-content: center; }
+  .warn { position: absolute; left: 60px; top: 1080px; background: #ff2a2a; color: #fff; font: 700 52px 'Oswald'; padding: 10px 24px; border: 5px solid #fff; transform: rotate(-2deg); }
+  .doc { position: absolute; left: 60px; top: 1360px; font: 400 64px 'IM Fell English', serif; color: #fff; text-shadow: 3px 3px 0 #000; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="12.8" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="12.8" data-track-index="9" src="audio/01.mp3"></audio>
+  <div id="tv" class="clip">
+    <div id="bgs" class="clip">
+      <div class="bg" id="bg1"><div class="rays"></div><div class="screen"><div class="h">VERMISST</div><div class="s">seit Dienstag · Hot-Dog-Fabrik</div><div class="q">?</div></div></div>
+      <div class="bg" id="bg2"><canvas id="wx" width="270" height="480"></canvas></div>
+      <div class="bg" id="bg3"></div>
+      <div class="bg" id="bg4"><div class="sun"></div></div>
+      <div class="bg" id="bg5"><div class="bars"></div><div class="circ"><div class="mid">MINO MAN</div></div></div>
+      <div class="bg" id="bg6"><div class="grid"></div><div class="ttl">MINO FIT</div></div>
+      <div class="bg" id="bg8"><div class="wall"></div><div class="seal">BUNDESAMT<br>FÜR<br>ERMITTLUNGEN</div></div>
+    </div>
+    <div id="gl"></div>
+    <div id="ovls" class="clip">
+      <div class="ov" id="ov1"><div class="bug">MINO 1</div>
+        <div class="lt"><span class="name">MINO MAN</span><span class="role">GÖTTLICHER GESANDTER · EINZIGER JOURNALIST</span></div>
+        <div class="chy" id="chy1"><b>LIVE</b><span id="chy1t">CHICKEN GUY WEITERHIN VERMISST</span></div></div>
+      <div class="ov" id="ov2"><div class="bug">MINO WETTER</div><div class="warn">HARD HOUSE · STÄRKE 9 · MODELLE UNZUVERLÄSSIG</div>
+        <div class="lt"><span class="name">MINO MAN</span><span class="role">METEOROLOGE</span></div>
+        <div class="chy"><b>FREQUENZ</b>ANKUNFT: JETZT</div></div>
+      <div class="ov" id="ov3"><div class="bug">MINO SHOP 24</div><div class="price" id="price">NUR<br>19,99</div>
+        <div class="lt"><span class="name">PEPSI GRANDMA</span><span class="role">PRODUKTEXPERTIN</span></div>
+        <div class="phone">0800 · MINO MINO</div></div>
+      <div class="ov" id="ov4"><div class="bug">MINO NATUR</div><div class="doc">Tierwelt</div>
+        <div class="lt"><span class="name">CHICKEN GUY</span><span class="role">SELTENE AUFNAHME · ZULETZT GESEHEN: DIENSTAG</span></div></div>
+      <div class="ov" id="ov5"></div>
+      <div class="ov" id="ov6"><div class="bug">MINO FIT</div>
+        <div class="lt"><span class="name">MINO MAN</span><span class="role">VORTURNER</span></div></div>
+      <div class="ov" id="ov8"><div class="bug">MINO LIVE</div>
+        <div class="lt"><span class="name">OFFICER MUNCH</span><span class="role">BUNDESAMT FÜR ERMITTLUNGEN</span></div>
+        <div class="chy"><b>PRESSE</b>AKTENLAGE: GEGESSEN</div></div>
+    </div>
+    <div id="ticker"><div class="lab">KABEL+</div><div class="run" id="run">+++ PEPSI GRANDMA WURDE ERNEUT IM DRITTEN BEZIRK GESEHEN – KEINE WEITEREN DETAILS +++ MINISTERIUM FÜR ENTFERNUNG BESTÄTIGT: EINIGE ORTE SIND WEITER ENTFERNT ALS BISHER ANGENOMMEN +++ INSTITUT FÜR AUFEINANDERFOLGENDE EREIGNISSE: MITTWOCH FOLGTE ERNEUT AUF DIENSTAG +++</div></div>
+    <div id="osd"><span id="osdn">P1</span><small id="osds">MINO 1</small></div>
+    <canvas id="snow"></canvas>
+  </div>
+  <div id="crt" class="clip"></div>
+  <div id="frame" class="clip"></div>
+  <div id="off" class="clip"><i></i></div>
+</div>
+<script>
+  const B = MV.b, DROP = MV.DROP;
+  // ---------- Sendeplan: ein Programm pro Abschnitt, gezappt auf den Beat ----------
+  const SEGS = [
+    { id: 1, b0: 0 }, { id: 2, b0: 8 }, { id: 3, b0: 10 }, { id: 4, b0: 12 }, { id: 5, b0: 14 }, { id: 6, b0: 15 },
+    { id: 8, b0: 19 }, { id: 3, b0: 22 }, { id: 4, b0: 23 }, { id: 2, b0: 24 }, { id: 6, b0: 25 }, { id: 8, b0: 26 }, { id: 5, b0: 27 }, { id: 1, b0: 28 },
+  ];
+  const NAMES = { 1: 'MINO 1', 2: 'MINO WETTER', 3: 'MINO SHOP 24', 4: 'MINO NATUR', 5: 'TESTBILD', 6: 'MINO FIT', 8: 'MINO LIVE' };
+  const at = MP.plan(SEGS);
+
+  // Testbild-Balken
+  const bars = document.querySelector('#bg5 .bars');
+  ['#c0c0c0', '#c0c000', '#00c0c0', '#00c000', '#c000c0', '#c00000', '#0000c0'].forEach((c) => { const i = document.createElement('i'); i.style.background = c; bars.appendChild(i); });
+
+  // ---------- 3D: ein Renderer, eine Szene pro Sender ----------
+  MC.style = 'lambert';
+  const st = MC.stage(document.getElementById('gl'), { w: 1080, h: 1920, pix: 3, fov: 34 });
+  const T3 = THREE;
+  const cam = (x, y, z, lx, ly, lz, fov) => { const c = new T3.PerspectiveCamera(fov || 34, 9 / 16, 0.05, 100); c.position.set(x, y, z); c.lookAt(lx, ly, lz); return c; };
+  const S = {};
+  // P1 Nachrichten
+  S[1] = { scene: st.newScene(), cam: cam(0, 1.62, 3.4, 0, 1.45, 0, 32) };
+  const mm1 = MC.make('minoman'); S[1].scene.add(mm1.root); mm1.root.position.set(0, 0, -0.15);
+  const desk1 = MP.desk(S[1].scene, { logo: 'MINO 1 · NACHRICHTEN', front: '#13205a' }); desk1.position.set(0, 0, 0.3); desk1.scale.y = 1.3;
+  const foam1 = MP.foam(S[1].scene, 50, 11);
+  // P2 Wetter
+  S[2] = { scene: st.newScene(), cam: cam(0.3, 1.4, 4.0, 0.3, 1.2, 0, 34) };
+  const mm2 = MC.make('minoman'); S[2].scene.add(mm2.root); mm2.root.position.set(0.1, 0, 0);
+  // P3 Teleshopping
+  S[3] = { scene: st.newScene(), cam: cam(0, 1.3, 3.6, 0, 1.15, 0, 34) };
+  const gm3 = MC.make('grandma'); S[3].scene.add(gm3.root); gm3.root.position.set(-0.15, 0, 0);
+  const tbl = MC.add(S[3].scene, MC.geo.box(2.4, 0.7, 0.8), MC.mat('#ffffff'), [0, 0.35, 0.55]);
+  MC.add(S[3].scene, MC.geo.box(2.42, 0.06, 0.82), new T3.MeshBasicMaterial({ color: '#ff007a' }), [0, 0.7, 0.55]);
+  const foam3 = MP.foam(S[3].scene, 90, 5);
+  // P4 Tierwelt
+  S[4] = { scene: st.newScene(), cam: cam(0.2, 0.9, 3.4, 0, 0.85, 0, 36) };
+  const cg4 = MC.make('chickenguy'); S[4].scene.add(cg4.root);
+  for (let i = 0; i < 18; i++) { const h = MV.hash(i + 3); MC.add(S[4].scene, new T3.ConeGeometry(0.05, 0.4 + h * 0.4, 4), MC.mat(i % 2 ? '#7fae3a' : '#5d8f2c'), [(MV.hash(i + 9) - 0.5) * 3, 0.2, 0.6 + h * 0.8]); }
+  // P5 Testbild (nur Kopf von Mino Man im Kreis)
+  S[5] = { scene: st.newScene(), cam: cam(0, 1.76, 1.25, 0, 1.74, 0, 30) };
+  const mm5 = MC.make('minoman'); S[5].scene.add(mm5.root);
+  // P6 Aerobic
+  S[6] = { scene: st.newScene(), cam: cam(0, 1.25, 6.2, 0, 1.0, 0, 36) };
+  const mm6 = MC.make('minoman'), cg6 = MC.make('chickenguy'), gm6 = MC.make('grandma');
+  [[mm6, 0, 0], [cg6, -0.68, -0.5], [gm6, 0.68, -0.5]].forEach(([h, x, z]) => { S[6].scene.add(h.root); h.root.position.set(x, 0, z); });
+  // P8 Pressekonferenz
+  S[8] = { scene: st.newScene(), cam: cam(0, 1.65, 3.2, 0, 1.5, 0, 32) };
+  const mu8 = MC.make('munch'); S[8].scene.add(mu8.root); mu8.root.position.set(0, 0, -0.35);
+  MP.podium(S[8].scene, { logo: 'BfE' }).position.set(0, 0, 0.15);
+
+  // Wetterkarte (2D-Canvas, psychedelische Frequenzfront)
+  const wx = document.getElementById('wx'), wg = wx.getContext('2d');
+  function drawWx(t) {
+    wg.fillStyle = '#0d3b2a'; wg.fillRect(0, 0, 270, 480);
+    // Landmasse des Minoverse
+    wg.fillStyle = '#2f7a4a'; wg.beginPath();
+    for (let a = 0; a <= 64; a++) { const an = (a / 64) * Math.PI * 2, r = 95 + 18 * Math.sin(an * 3) + 10 * Math.sin(an * 7); wg.lineTo(135 + Math.cos(an) * r, 200 + Math.sin(an) * r * 1.2); }
+    wg.fill();
+    // Frequenzfront: Isobaren-Ringe, Farbe läuft durch den Farbkreis
+    for (let k = 0; k < 9; k++) {
+      const r = ((t * 70 + k * 26) % 240);
+      wg.strokeStyle = `hsl(${(t * 140 + k * 40) % 360},100%,60%)`; wg.lineWidth = 4;
+      wg.beginPath(); wg.ellipse(30, 120, r, r * 0.8, 0.4, 0, Math.PI * 2); wg.stroke();
+    }
+    wg.fillStyle = '#fff'; wg.font = '700 14px Oswald';
+    wg.fillText('DRITTER BEZIRK', 140, 250); wg.fillText('HOT-DOG-FABRIK', 70, 160); wg.fillText('ÖSTL. BEZIRK', 180, 190);
+    wg.fillStyle = '#ffcc00'; wg.font = '400 40px Anton'; wg.fillText('H H', 20, 70);
+  }
+
+  // ---------- DOM-Referenzen ----------
+  const $ = (id) => document.getElementById(id);
+  const bgs = {}, ovs = {};
+  [1, 2, 3, 4, 5, 6, 8].forEach((i) => { bgs[i] = $('bg' + i); ovs[i] = $('ov' + i); });
+  const tv = $('tv'), osd = $('osd'), osdn = $('osdn'), osds = $('osds'), run = $('run'), off = $('off'), offLine = off.querySelector('i');
+  const snowCv = $('snow'), snow = MP.snow(snowCv, 135, 240);
+  const chy1t = $('chy1t'), price = $('price');
+
+  const tl = gsap.timeline({ paused: true });
+  MV.onFrame((t) => {
+    const seg = at(t), id = seg.id;
+    const beat = t / MV.BEAT, after = MV.after(t);
+    [1, 2, 3, 4, 5, 6, 8].forEach((i) => { bgs[i].style.opacity = i === id ? 1 : 0; ovs[i].style.opacity = i === id ? 1 : 0; });
+    // OSD zeigt sich nach jedem Zappen
+    osd.style.opacity = seg.a < 1.2 ? 1 : 0;
+    osdn.textContent = 'P' + id; osds.textContent = NAMES[id];
+    // Schnee + Bildsprung direkt nach dem Zappen
+    const z = seg.i > 0 ? MV.clamp(1 - seg.a / 0.09, 0, 1) : 0;
+    snowCv.style.opacity = z > 0 ? 0.9 : 0;
+    if (z > 0) snow(Math.floor(t * 30), null);
+    // Fieber: ab Schlag 22 laufen die Sender ineinander (Farbdrehung, Wackeln)
+    const fever = MV.clamp((beat - 21) / 6, 0, 1) * (beat < 28 ? 1 : 0.35);
+    const roll = seg.a < 0.12 && seg.i > 0 ? (1 - seg.a / 0.12) * 120 : 0;
+    tv.style.transform = `translateY(${roll}px) skewX(${fever * 6 * Math.sin(t * 9)}deg) scale(${1 + 0.02 * MV.pulse(t, 7, 1, DROP)})`;
+    tv.style.filter = fever > 0 ? `hue-rotate(${fever * (t * 300 % 360)}deg) saturate(${1 + fever})` : 'none';
+    // Ticker läuft unabhängig über alle Sender
+    run.style.transform = `translateX(${-((t * 260) % 3200)}px)`;
+    // Bildröhre an (Anfang) / aus (Ende)
+    const on = MV.clamp(t / 0.35, 0, 1), offK = MV.clamp((t - B(30.2)) / 0.45, 0, 1);
+    off.style.opacity = on < 1 ? 1 - MV.ease.out(on) * (on > 0.5 ? 1 : 0.6) : offK > 0 ? 1 : 0;
+    const lineH = on < 1 ? 8 + 1900 * MV.ease.out(on) : 1920 * (1 - MV.ease.out(MV.clamp(offK * 2.2, 0, 1)));
+    offLine.style.height = Math.max(6, lineH) + 'px'; offLine.style.marginTop = -Math.max(6, lineH) / 2 + 'px';
+    offLine.style.width = (offK > 0.45 ? 1080 * (1 - MV.clamp((offK - 0.45) / 0.4, 0, 1)) + 12 : 1080) + 'px';
+    offLine.style.marginLeft = -parseFloat(offLine.style.width) / 2 + 'px';
+    offLine.style.opacity = (on < 1 || offK > 0) && offK < 0.95 ? 1 : 0;
+    if (on >= 1 && offK > 0) off.style.background = '#000';
+
+    // ---------- Szenen ----------
+    const sc = S[id];
+    if (id === 1) {
+      const talk = MV.talkAny(['1a', '1b'], t);
+      MC.move(mm1, beat, 'anchor', { gesture: 0.3 * talk, nod: talk });
+      MC.face(mm1, t, talk, 0);
+      // Kamera: ruhiger Push-in; am Ende Studio ist verwüstet (Schaum regnet)
+      const end = t > B(28);
+      sc.cam.position.set(0.05 * Math.sin(t * 0.3), 1.6, 3.7 - (end ? 0.55 : 0.45 * MV.clamp(t / DROP, 0, 1)));
+      sc.cam.lookAt(0, 1.32, 0);
+      foam1(t, B(28), { x: 0.6, y: 2.6, z: 0.2 }, -0.4, 2.5);
+      chy1t.textContent = t < B(5) ? 'CHICKEN GUY WEITERHIN VERMISST' : t < B(28) ? 'EILMELDUNG: FREQUENZ IM ANMARSCH' : 'CHICKEN GUY WEITERHIN VERMISST';
+    } else if (id === 2) {
+      drawWx(t);
+      MC.move(mm2, beat, 'point', { yaw: 0.5, k: 1 });
+      MC.face(mm2, t, 0, 0);
+      sc.cam.position.set(0.3, 1.4, 4.0 - 0.3 * MV.clamp(seg.a / 0.8, 0, 1));
+    } else if (id === 3) {
+      const a = t - B(10);
+      const mv = a < B(0.5) ? 'shake' : a < B(1) ? 'drop' : 'blast';
+      MC.move(gm3, beat, mv, { yaw: 0.25, k: 1 });
+      MC.face(gm3, t, mv === 'blast' ? 0.9 : 0.2, mv === 'blast' ? 1 : 0.6);
+      gm3.root.updateMatrixWorld(true);
+      const p = gm3.cap.getWorldPosition(new T3.Vector3());
+      foam3(t, B(10.9), p, 1.1, 1.6);
+      foam3(t > B(22) ? t : -1, B(22.1), p, 1.3, 0.8);
+      price.innerHTML = t < B(11) ? 'NUR<br>19,99' : t < B(22) ? 'NUR<br>0,99' : 'GRA-<br>TIS';
+      price.style.transform = `rotate(10deg) scale(${1 + 0.15 * MV.pulse(t, 6)})`;
+    } else if (id === 4) {
+      MC.move(cg4, beat, t < B(23) ? 'flap' : 'twerk', { yaw: 0.35 * Math.sin(t * 2) });
+      MC.face(cg4, t, 0.55 + 0.45 * MV.pulse(t, 5), 0.8, { lookX: 0.8 });
+      sc.cam.position.set(0.2 + 0.3 * Math.sin(t), 0.9, 3.4);
+      sc.cam.lookAt(0, 0.85, 0);
+    } else if (id === 5) {
+      MC.move(mm5, 0, 'idle');
+      MC.face(mm5, t, 0, 0, { noBlink: true });
+    } else if (id === 6) {
+      const ph = beat;
+      MC.move(mm6, ph, 'twostep', { k: 0.9 }); MC.face(mm6, t, 0, 0);
+      MC.move(cg6, ph, 'flap', { k: 1 }); MC.face(cg6, t, 0.6, 0.6);
+      MC.move(gm6, ph, 'wave', { k: 1 }); MC.face(gm6, t, 0.3, 1);
+    } else if (id === 8) {
+      const talk = MV.talk('1c', t);
+      MC.move(mu8, beat, 'eat', {});
+      MC.face(mu8, t, Math.max(talk, 0.35 * Math.max(0, Math.sin(t * 14))), 0, { sleepy: 0.05 });
+      // Akte wird kleiner: Munch isst sie
+      const eaten = MV.clamp((t - B(19)) / B(3), 0, 1);
+      mu8.j.folder.scale.set(1, 1 - 0.85 * eaten, 1);
+      sc.cam.position.set(0.04 * Math.sin(t * 13) * MV.pulse(t, 6, 1), 1.65, 3.2);
+    }
+    st.render(sc.scene, sc.cam);
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>
