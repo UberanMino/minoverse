@@ -9,7 +9,7 @@ frame_change-Handler (wie die HyperFrames-Runtime), damit Beats exakt sitzen.
 
   blender -b --factory-startup --python mino_kabel_reel.py -- --params params.json --song song.wav --out out/reel.mp4
   Optionen: --res 540x960  --fps 30  --engine EEVEE|CYCLES  --samples 16  --still 18.5  --save scene.blend
-            --frames 1-120 (Ausschnitt)  --cpu (Cycles auf CPU)
+            --frames 1-120 (Ausschnitt)  --cpu (Cycles auf CPU)  --fast (EEVEE ohne Raytracing, grober Dunst, 16 Samples)
 """
 import json
 import math
@@ -1501,8 +1501,12 @@ else:
             continue
     ee = scn.eevee
     ee.taa_render_samples = SAMPLES
+    # --fast: schlanker wie Dat Swag (kein Screen-Space-Raytracing, grobe Dunst-Kacheln, weniger Samples)
+    FAST = opt("--fast", flag=True)
+    if FAST and not opt("--samples"):
+        ee.taa_render_samples = 16
     for attr, val in (("use_bloom", True), ("bloom_intensity", 0.08), ("use_gtao", True), ("use_volumetric_shadows", False),
-                      ("volumetric_tile_size", "4"), ("use_raytracing", True)):
+                      ("volumetric_tile_size", "16" if FAST else "4"), ("use_raytracing", not FAST)):
         if hasattr(ee, attr):
             try:
                 setattr(ee, attr, val)
