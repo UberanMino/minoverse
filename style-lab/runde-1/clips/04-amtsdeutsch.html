@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>04 Amtsdeutsch</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mv.js"></script>
+<style>
+  #desk { background: repeating-linear-gradient(90deg, rgba(0,0,0,.04) 0 3px, transparent 3px 9px), linear-gradient(160deg, #8d9a8a, #5d6a5b); }
+  .form { left: 70px; top: 190px; width: 940px; height: 1420px; background: #f4f1e6; box-shadow: 0 20px 50px rgba(0,0,0,.45); padding: 60px 64px; font-family: 'Special Elite', monospace; color: #1d1d1d; overflow: hidden; }
+  .form .hd { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 4px double #333; padding-bottom: 18px; }
+  .form .hd small { font: 700 22px 'IBM Plex Mono', monospace; line-height: 1.3; letter-spacing: 1px; }
+  .seal { width: 120px; height: 120px; border-radius: 50%; border: 5px solid #333; display: grid; place-items: center; overflow: hidden; filter: grayscale(1) contrast(1.4); }
+  .seal img { width: 70px; }
+  .form h1 { font: 700 70px 'IBM Plex Mono', monospace; letter-spacing: 6px; margin: 40px 0 6px; }
+  .form .sub { font-size: 26px; color: #555; margin-bottom: 30px; }
+  .row { display: grid; grid-template-columns: 290px 1fr; border-bottom: 2px solid #999; padding: 26px 0 12px; font-size: 54px; min-height: 130px; }
+  .row label { font: 700 26px 'IBM Plex Mono', monospace; color: #666; letter-spacing: 1px; padding-top: 12px; }
+  .row span { color: #0b2a8f; }
+  .photo { right: 70px; top: 210px; width: 200px; height: 250px; background: #ddd; border: 6px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.3); overflow: hidden; transform: rotate(4deg); }
+  .photo img { width: 100%; margin-top: 10px; filter: grayscale(.4) contrast(1.1); }
+  .clipper { right: 150px; top: 180px; width: 46px; height: 120px; border: 7px solid #9aa; border-radius: 24px; transform: rotate(4deg); }
+  .sig { left: 64px; bottom: 60px; font: 400 26px 'IBM Plex Mono', monospace; color: #666; }
+  #copies .form { opacity: .5; }
+  .stamp { left: 50%; top: 50%; padding: 10px 34px; border: 10px solid currentColor; border-radius: 14px; font: 700 96px 'IBM Plex Mono', monospace; letter-spacing: 4px; mix-blend-mode: multiply; white-space: nowrap; opacity: 0; }
+  .bite { width: 260px; height: 260px; border-radius: 50%; background: #6c796a; box-shadow: inset 6px 6px 0 rgba(0,0,0,.12); opacity: 0; }
+  #sub { left: 60px; right: 60px; bottom: 360px; text-align: center; font: 700 52px 'IBM Plex Mono', monospace; color: #fff; background: rgba(0,0,0,.75); padding: 14px 20px; opacity: 0; }
+  #flash { background: #fff; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="7.2727" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="7.2727" data-track-index="9" src="audio/04.mp3"></audio>
+  <div id="desk" class="clip"></div>
+  <div id="copies" class="clip"></div>
+  <div id="formWrap" class="clip">
+    <div id="form" class="form abs">
+      <div class="hd"><small>BUNDESAMT FÜR<br>MINOVERSE-ANGELEGENHEITEN<br>REFERAT 132 · AZ 4-B/PG</small><div class="seal"><img src="assets/cg_head.webp" alt=""></div></div>
+      <h1>VERMISSTEN&shy;ANZEIGE</h1>
+      <div class="sub">gem. § 132 Abs. 4 Beats-pro-Minute-Ordnung (BpMO)</div>
+      <div class="row"><label>NAME</label><span class="ty" data-t="Chicken Guy"></span></div>
+      <div class="row"><label>ZULETZT GESEHEN</label><span class="ty" data-t="tanzend, 132 BPM"></span></div>
+      <div class="row"><label>MERKMALE</label><span class="ty" data-t="frittiert"></span></div>
+      <div class="row"><label>ZEUGIN</label><span class="ty" data-t="Pepsi Grandma"></span></div>
+      <div class="row"><label>ANTRAGSTELLER</label><span class="ty" data-t="Mino Man"></span></div>
+      <div class="photo abs"><img src="assets/mm_head.webp" alt=""></div>
+      <div class="clipper abs"></div>
+      <div class="sig">Unterschrift: ______________</div>
+    </div>
+    <div id="stamps" class="clip"></div>
+    <div id="bites" class="clip"></div>
+  </div>
+  <div id="sub" class="abs">Ihr Antrag wurde gegessen.</div>
+  <div id="flash" class="clip"></div>
+</div>
+<script>
+  const DROP = MV.BAR * 2;
+  const tl = gsap.timeline({ paused: true });
+  // Durchschlaege (Kopien) fuer den Psycho-Kopierer-Effekt
+  const copies = document.getElementById('copies');
+  const form = document.getElementById('form');
+  const cps = [];
+  for (let i = 0; i < 5; i++) { const c = form.cloneNode(true); c.removeAttribute('id'); copies.appendChild(c); cps.push(c); }
+  // Schreibmaschine: Zeichen pro Sechzehntel
+  const tys = [...document.querySelectorAll('#form .ty')];
+  const all = tys.map((e) => e.dataset.t);
+  const step = MV.BEAT / 8;
+  const stamps = [
+    ['EINGEGANGEN', '#1d4fd8', -12], ['ABGELEHNT', '#c4122f', 8], ['GENEHMIGT', '#11823b', -5], ['UNZUSTÄNDIG', '#7a1fa2', 14],
+    ['ABGELEHNT', '#c4122f', -18], ['GENEHMIGT', '#11823b', 4], ['WIRD GEGESSEN', '#c4122f', -8], ['NÄCHSTER', '#111', 10]];
+  const st = document.getElementById('stamps');
+  stamps.forEach(([txt, col, rot], i) => {
+    const d = document.createElement('div'); d.className = 'stamp abs'; d.textContent = txt; d.style.color = col;
+    st.appendChild(d);
+    const tt = DROP + i * MV.BEAT;
+    const x = (MV.hash(i + 3) - 0.5) * 340, y = (MV.hash(i + 11) - 0.5) * 900;
+    tl.fromTo(d, { opacity: 0, scale: 2.6, x: x - 0.5 * d.offsetWidth, y: y - 60, rotation: rot - 10 },
+      { opacity: 0.9, scale: 1, rotation: rot, duration: 0.07, ease: 'power4.in' }, tt);
+  });
+  // Bisse von Officer Munch: letzter Takt, von rechts nach links
+  const bites = document.getElementById('bites');
+  for (let i = 0; i < 9; i++) {
+    const b = document.createElement('div'); b.className = 'bite abs'; bites.appendChild(b);
+    const y = 120 + i * 170, x = 1010 - 120 - (i % 2) * 50 - (i > 5 ? 90 : 0);
+    gsap.set(b, { left: x, top: y });
+    tl.to(b, { opacity: 1, duration: 0.01 }, MV.BAR * 3 + i * MV.BEAT / 2.2);
+  }
+  tl.to('#sub', { opacity: 1, duration: 0.01 }, MV.BAR * 3 + 0.1);
+  tl.to('#flash', { opacity: 0.8, duration: 0.03 }, DROP - 0.02).to('#flash', { opacity: 0, duration: 0.25 }, DROP + 0.02);
+  tl.fromTo('#formWrap', { rotation: -2 }, { rotation: 1, duration: DROP, ease: 'none' }, 0);
+
+  const wrap = document.getElementById('formWrap');
+  MV.onFrame((t) => {
+    // Typing
+    let n = Math.floor(t / step) - 2;
+    tys.forEach((e, i) => { const len = Math.max(0, Math.min(all[i].length, n)); e.textContent = all[i].slice(0, len); n -= all[i].length + 1; });
+    const after = t >= DROP;
+    const p = MV.pulse(t, 14);
+    wrap.style.translate = after ? `${(MV.hash(MV.beatIndex(t)) - 0.5) * 30 * p}px ${p * 18}px` : '0 0';
+    // Kopierer-Echo: nach dem Drop entfalten sich Durchschlaege und faerben sich
+    cps.forEach((c, i) => {
+      const k = after ? Math.min(1, (t - DROP) / MV.BAR) : 0;
+      c.style.opacity = after ? 0.45 : 0;
+      c.style.transform = `translate(${(i + 1) * 26 * k * Math.sin(t * 2 + i)}px, ${(i + 1) * 30 * k}px) rotate(${(i + 1) * 3 * k}deg)`;
+      c.style.filter = `hue-rotate(${(i + 1) * 60 + t * 120}deg) saturate(3) invert(${i % 2 ? 1 : 0})`;
+    });
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

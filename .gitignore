@@ -1,0 +1,13 @@
+# Medien (Freisteller echter Personen, Stimmen, Renders) liegen nicht im öffentlichen Repo,
+# sondern in den Projektdateien (stilrunde-1/).
+style-lab/**/assets/
+style-lab/**/audio/
+style-lab/**/fonts/
+style-lab/**/posters/
+style-lab/**/lib/gsap.min.js
+*.mp4
+*.webp
+*.png
+*.wav
+*.mp3
+node_modules/

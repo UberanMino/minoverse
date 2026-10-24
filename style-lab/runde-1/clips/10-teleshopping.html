@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>10 Teleshopping</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mv.js"></script>
+<style>
+  #set { background: linear-gradient(180deg, #ff9fd6 0%, #ffd1ea 45%, #c2f1ff 100%); }
+  #set::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0 30px, transparent 30px 60px); }
+  #brand { left: 40px; top: 60px; font: 400 76px 'Bungee'; color: #fff; background: #ff007a; padding: 10px 26px; border-radius: 20px; box-shadow: 8px 8px 0 #7a00ff; transform: rotate(-3deg); }
+  #clock { right: 40px; top: 80px; font: 400 48px 'VT323'; color: #222; background: #fff; padding: 4px 16px; border: 4px solid #222; }
+  #table { left: -20px; right: -20px; top: 1250px; height: 260px; background: linear-gradient(#fff, #d9e6f2); border-top: 10px solid #ff007a; }
+  #product { left: 300px; top: 620px; width: 480px; }
+  #geyser { left: 487px; top: 360px; width: 120px; height: 0; transform-origin: 50% 100%; }
+  #geyser span { position: absolute; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #f1ead2 50%, #c9b98a); }
+  #cg { left: 700px; top: 760px; width: 300px; height: 534px; }
+  #mm { left: -60px; top: 780px; width: 420px; transform: scaleX(-1); }
+  .burst { width: 420px; height: 420px; background: #ffe600; clip-path: polygon(50% 0%, 61% 18%, 82% 7%, 80% 30%, 100% 35%, 85% 52%, 100% 68%, 79% 72%, 82% 94%, 61% 84%, 50% 100%, 39% 84%, 18% 94%, 21% 72%, 0% 68%, 15% 52%, 0% 35%, 20% 30%, 18% 7%, 39% 18%); display: grid; place-items: center; text-align: center; font: 400 64px 'Bungee'; color: #e0002a; line-height: .95; }
+  #b1 { right: 20px; top: 300px; transform: rotate(12deg); }
+  #b2 { left: 20px; top: 1080px; width: 330px; height: 330px; font-size: 44px; background: #7cff4a; color: #111; transform: rotate(-10deg); }
+  #lower { left: 0; right: 0; top: 1500px; background: #7a00ff; color: #fff; padding: 22px 40px; font: 400 54px 'Bungee'; line-height: 1.1; }
+  #lower small { display: block; font: 700 40px 'Oswald'; color: #ffe600; letter-spacing: 2px; margin-top: 6px; }
+  #phone { left: 0; right: 0; top: 1690px; height: 110px; background: #ffe600; color: #111; font: 400 74px 'Bungee'; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; }
+  #sold { left: 120px; top: 640px; padding: 10px 40px; border: 14px solid #e0002a; color: #e0002a; font: 400 120px 'Bungee'; transform: rotate(-16deg); opacity: 0; background: rgba(255,255,255,.7); }
+  #shine { pointer-events: none; mix-blend-mode: screen; }
+  #shine i { position: absolute; width: 60px; height: 60px; background: #fff; clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="7.2727" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="7.2727" data-track-index="9" src="audio/10.mp3"></audio>
+  <div id="set" class="clip"></div>
+  <div id="brand" class="abs">MINO-SHOP 24</div>
+  <div id="clock" class="abs">03:00 NACHTS</div>
+  <div id="table" class="abs"></div>
+  <div id="geyser" class="abs"></div>
+  <img id="product" class="abs sticker" src="assets/pg.svg" alt="">
+  <img id="mm" class="abs" src="assets/mm_anchor.webp" alt="">
+  <div id="cg" class="sprite"></div>
+  <div id="b1" class="abs burst"><span id="price">NUR<br>19,99</span></div>
+  <div id="b2" class="abs burst">HÜHNER-<br>MANN<br>GRATIS!</div>
+  <div id="sold" class="abs">AUSVERKAUFT</div>
+  <div id="lower" class="abs">PEPSI-GRANDMA-SET<small>INKL. MENTOS · 3 LITER · KEINE VERLETZTEN</small></div>
+  <div id="phone" class="abs">0800 · MINO MINO</div>
+  <div id="shine" class="clip"></div>
+</div>
+<script>
+  const DROP = MV.BAR * 2;
+  const tl = gsap.timeline({ paused: true });
+  tl.from('#brand', { scale: 0, rotation: 30, duration: 0.3, ease: 'back.out(3)' }, 0);
+  tl.from('#product', { y: 900, duration: 0.45, ease: 'back.out(1.5)' }, 0.2);
+  tl.from('#b1', { scale: 0, duration: 0.25, ease: 'back.out(4)' }, MV.b(3));
+  tl.from('#lower', { x: -1100, duration: 0.3, ease: 'power3.out' }, MV.b(2));
+  tl.from('#phone', { y: 300, duration: 0.3, ease: 'power3.out' }, MV.b(5));
+  tl.from('#b2', { scale: 0, duration: 0.25, ease: 'back.out(4)' }, DROP + MV.b(1));
+  tl.set('#price', { innerHTML: 'NUR<br>9,99' }, DROP).set('#price', { innerHTML: 'NUR<br>0,99' }, DROP + MV.b(4)).set('#price', { innerHTML: 'GRA-<br>TIS' }, DROP + MV.b(6));
+  tl.to('#sold', { opacity: 1, duration: 0.01 }, MV.BAR * 3 + MV.b(2));
+  tl.from('#sold', { scale: 3, duration: 0.12, ease: 'power4.in' }, MV.BAR * 3 + MV.b(2));
+  const g = document.getElementById('geyser'); const drops = [];
+  for (let i = 0; i < 30; i++) { const s = document.createElement('span'); g.appendChild(s); drops.push(s); }
+  const sh = document.getElementById('shine'); const sparks = [];
+  for (let i = 0; i < 14; i++) { const s = document.createElement('i'); sh.appendChild(s); sparks.push(s); }
+  const cgS = MV.sprite(document.getElementById('cg'), MV.CG);
+  const set = document.getElementById('set'), b1 = document.getElementById('b1'), product = document.getElementById('product');
+  MV.onFrame((t) => {
+    const after = t >= DROP;
+    const p = MV.pulse(t, 6);
+    cgS(t * 10);
+    b1.style.scale = 1 + 0.12 * p;
+    // Mentos-Geysir aus der Flasche (ab Schlag 6, nach dem Drop riesig)
+    const on = t > MV.b(6);
+    drops.forEach((s, i) => {
+      const h = MV.hash(i + 5), h2 = MV.hash(i + 55);
+      const life = ((t * (1.2 + h) + h2) % 1);
+      const height = after ? 1300 : 420;
+      const sz = 30 + 60 * h * (after ? 1.6 : 1);
+      s.style.width = s.style.height = sz + 'px';
+      s.style.left = 60 + (h - 0.5) * 140 * life * (after ? 3 : 1) - sz / 2 + 'px';
+      s.style.top = -life * height + 'px';
+      s.style.opacity = on ? 1 - life * 0.6 : 0;
+    });
+    product.style.rotate = `${Math.sin(t * 6) * (after ? 8 : 2)}deg`;
+    // Kitsch wird psychedelisch: Hintergrund faehrt durch den Farbkreis
+    set.style.filter = after ? `hue-rotate(${(t - DROP) * 160}deg) saturate(1.8)` : 'none';
+    sparks.forEach((s, i) => {
+      const h = MV.hash(i + 21), h2 = MV.hash(i + 31);
+      const tw = Math.max(0, Math.sin(t * 6 + i * 2.1));
+      s.style.left = 80 + h * 900 + 'px'; s.style.top = 250 + h2 * 1250 + 'px';
+      s.style.transform = `scale(${tw * (after ? 1.6 : 1)}) rotate(${t * 90}deg)`;
+    });
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

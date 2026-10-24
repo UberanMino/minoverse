@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>01 Mino-Schau</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mv.js"></script>
+<style>
+  #studio { background: radial-gradient(120% 70% at 50% 30%, #1d3f8f 0%, #0a1a46 55%, #050b22 100%); }
+  #melt { filter: url(#meltF); }
+  #screen { left: 60px; top: 230px; width: 560px; height: 640px; border: 10px solid #0d1c4a; border-radius: 18px; overflow: hidden; background: #08122e; box-shadow: 0 0 80px rgba(80,140,255,.35); }
+  #screen canvas { width: 100%; height: 100%; image-rendering: auto; }
+  #globe { left: 50%; top: 50%; width: 420px; height: 420px; margin: -210px 0 0 -210px; border-radius: 50%;
+    background: repeating-linear-gradient(90deg, rgba(120,180,255,.35) 0 2px, transparent 2px 52px), repeating-linear-gradient(0deg, rgba(120,180,255,.35) 0 2px, transparent 2px 52px), radial-gradient(circle at 35% 35%, #3f7bff, #0b2a7a 70%); }
+  #cgInScreen { left: 160px; top: 150px; width: 236px; height: 420px; transform-origin: 50% 100%; }
+  #pg { left: 10px; bottom: -30px; width: 170px; }
+  #desk { left: -20px; right: -20px; bottom: 270px; height: 420px; background: linear-gradient(#e8ecf5, #9aa6c4); clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%); }
+  #desk::after { content: 'MINO-SCHAU'; position: absolute; left: 0; right: 0; top: 40px; text-align: center; font: 900 92px 'Cinzel', serif; letter-spacing: 6px; color: #0a1a46; }
+  #anchor { left: 430px; bottom: 560px; width: 640px; }
+  #logo { left: 48px; top: 70px; display: flex; align-items: center; gap: 18px; font: 700 54px 'Oswald', sans-serif; color: #fff; letter-spacing: 2px; }
+  #logo b { background: #fff; color: #0a1a46; padding: 4px 16px; }
+  #live { right: 48px; top: 78px; font: 700 44px 'Oswald'; color: #fff; background: #d31027; padding: 2px 18px; }
+  #lower { left: 0; bottom: 560px; width: 760px; height: 150px; background: #f2f4fa; padding: 18px 40px; border-left: 22px solid #d31027; }
+  #lower h2 { font: 700 60px 'Oswald'; color: #0a1a46; line-height: 1; }
+  #lower p { font: 700 34px 'Oswald'; color: #5b6890; margin-top: 8px; letter-spacing: 1px; }
+  #head { left: 0; right: 0; bottom: 370px; height: 100px; background: #d31027; color: #fff; font: 700 64px 'Oswald'; display: flex; align-items: center; padding-left: 40px; white-space: nowrap; overflow: hidden; }
+  #ticker { left: 0; right: 0; bottom: 270px; height: 100px; background: #fff200; overflow: hidden; }
+  #tickerTrack { position: absolute; top: 14px; left: 0; white-space: nowrap; font: 700 60px 'Oswald'; color: #111; }
+  #cgBig { left: 40px; bottom: 330px; width: 470px; height: 836px; transform-origin: 50% 100%; }
+  #flash { background: #fff; opacity: 0; }
+  #wetter { left: 0; right: 0; top: 330px; text-align: center; font: 900 150px 'Cinzel'; color: #fff; text-shadow: 0 0 40px #ff00d4, 8px 8px 0 #0a1a46; opacity: 0; }
+  #scan { background: repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 3px, transparent 3px 6px); mix-blend-mode: multiply; pointer-events: none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="meltF" x="-10%" y="-10%" width="120%" height="120%">
+    <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.004 0.02" numOctaves="2" seed="13" result="n"/>
+    <feDisplacementMap id="disp" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div id="root" data-composition-id="main" data-start="0" data-duration="7.2727" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="7.2727" data-track-index="9" src="audio/01.mp3"></audio>
+  <div id="melt" class="clip" data-start="0" data-duration="7.2727">
+    <div id="studio" class="clip"></div>
+    <div id="screen" class="abs">
+      <canvas id="plasma"></canvas>
+      <div id="globe" class="abs"></div>
+      <div id="cgInScreen" class="sprite"></div>
+      <img id="pg" class="abs sticker" src="assets/pg.svg" alt="">
+    </div>
+    <img id="anchor" class="abs" src="assets/mm_anchor.webp" alt="Mino Man">
+    <div id="desk" class="abs"></div>
+    <div id="logo" class="abs"><b>MS</b>MINO-SCHAU</div>
+    <div id="live" class="abs">LIVE</div>
+    <div id="lower" class="abs"><h2>MINO MAN</h2><p>EINZIGER JOURNALIST · VOR ORT</p></div>
+    <div id="head" class="abs"><span id="headTxt">CHICKEN GUY WEITERHIN VERMISST</span></div>
+    <div id="ticker" class="abs"><div id="tickerTrack">+++ PEPSI GRANDMA MELDET 3 LITER, KEINE VERLETZTEN +++ OFFICER MUNCH HAT DIE AKTE GEGESSEN +++ 132 BPM AUS WESTEN +++ UBERAN MINO WEITERHIN ABWESEND +++ PEPSI GRANDMA MELDET 3 LITER, KEINE VERLETZTEN +++</div></div>
+  </div>
+  <div id="cgBig" class="sprite"></div>
+  <div id="wetter" class="abs">DAS WETTER:<br>MUSIK</div>
+  <div id="scan" class="clip"></div>
+  <div id="flash" class="clip"></div>
+</div>
+<script>
+  const B = MV.BEAT, D = MV.DUR, DROP = MV.BAR * 2;
+  const tl = gsap.timeline({ paused: true });
+  // Kaltstart: seriös
+  tl.from('#lower', { x: -800, duration: 0.35, ease: 'power3.out' }, 0.25);
+  tl.from('#head', { scaleX: 0, transformOrigin: '0 50%', duration: 0.3, ease: 'power2.out' }, MV.b(3));
+  tl.fromTo('#anchor', { scale: 1 }, { scale: 1.06, transformOrigin: '50% 100%', duration: DROP, ease: 'none' }, 0);
+  // Drop
+  tl.to('#flash', { opacity: 1, duration: 0.04 }, DROP - 0.02).to('#flash', { opacity: 0, duration: 0.35 }, DROP + 0.02);
+  tl.to('#globe', { opacity: 0, scale: 3, duration: 0.3 }, DROP);
+  tl.to('#lower', { x: -900, duration: 0.25, ease: 'power2.in' }, DROP);
+  tl.set('#headTxt', { textContent: 'STUDIO SCHMILZT · KEIN GRUND ZUR SORGE' }, DROP);
+  tl.from('#cgBig', { y: 900, duration: 0.4, ease: 'back.out(1.6)' }, DROP + MV.b(1));
+  tl.to('#wetter', { opacity: 1, duration: 0.05 }, MV.b(12));
+  tl.from('#wetter', { scale: 2.4, duration: 0.45, ease: 'expo.out' }, MV.b(12));
+  // Grundzustand fuer nicht sichtbare Elemente
+  tl.set('#cgBig', { opacity: 0 }, 0).set('#cgBig', { opacity: 1 }, DROP + MV.b(1));
+  tl.set('#cgInScreen', { opacity: 0 }, 0).set('#cgInScreen', { opacity: 1 }, DROP);
+  tl.set('#pg', { opacity: 0 }, 0).set('#pg', { opacity: 1 }, MV.b(9));
+
+  const sIn = MV.sprite(document.getElementById('cgInScreen'), MV.CG);
+  const sBig = MV.sprite(document.getElementById('cgBig'), MV.CG);
+  const plasma = MV.plasma(document.getElementById('plasma'), { w: 90, h: 76 });
+  const disp = document.getElementById('disp'), turb = document.getElementById('turb');
+  const track = document.getElementById('tickerTrack'), studio = document.getElementById('studio');
+  const melt = document.getElementById('melt'), anchor = document.getElementById('anchor');
+  MV.onFrame((t) => {
+    const after = t >= DROP;
+    const k = after ? Math.min(1, (t - DROP) / MV.BAR) : 0;
+    sIn(t * 10); sBig(t * 10 + 7);
+    plasma(t * (after ? 3 : 0.6), after ? 1 + k : 0.6, after ? t * 0.2 : 0.62);
+    document.getElementById('plasma').style.opacity = after ? 1 : 0.25;
+    // Schmelzen: Verschiebung waechst, pumpt auf dem Beat
+    const p = MV.pulse(t, 6);
+    disp.setAttribute('scale', after ? (30 + 70 * k) * (0.6 + 0.6 * p) : 0);
+    turb.setAttribute('baseFrequency', `${0.003 + 0.002 * Math.sin(t)} ${0.012 + 0.01 * k}`);
+    turb.setAttribute('seed', after ? 13 + MV.beatIndex(t) % 4 : 13);
+    melt.style.filter = after ? `url(#meltF) hue-rotate(${(t - DROP) * 90}deg) saturate(${1.4 + p})` : 'none';
+    track.style.transform = `translateX(${-((t * 260) % 2100)}px)`;
+    studio.style.filter = after ? `brightness(${1 + p * 0.6})` : 'none';
+    // Mino Man bleibt deadpan: nur minimale Beat-Bewegung nach dem Drop
+    anchor.style.translate = after ? `0 ${-p * 10}px` : '0 0';
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

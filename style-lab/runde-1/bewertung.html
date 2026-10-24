@@ -1,0 +1,303 @@
+<title>Minoverse Stilrunde 1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  /* Layout: Sichtungsraum – links der 9:16-Monitor, rechts Steckbrief + Bewertung; dunkel zuerst, damit die Clips leuchten */
+  :root {
+    --bg: #110e17; --surface: #1b1724; --line: #2e2840; --fg: #f2eef9; --muted: #a79fb8;
+    --yolk: #ffc93c; --cola: #4a74ff; --alarm: #ff4d6d; --ok: #57d68d;
+    --f-display: 'Syne', 'Arial Black', sans-serif; --f-body: 'Atkinson Hyperlegible', system-ui, sans-serif; --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+    --bg: #eeedf3; --surface: #ffffff; --line: #d9d5e4; --fg: #17131f; --muted: #5d566c;
+    --yolk: #b07a00; --cola: #2448d6; --alarm: #c8183b; --ok: #13804a; color-scheme: light; } }
+  :root[data-theme="light"] {
+    --bg: #eeedf3; --surface: #ffffff; --line: #d9d5e4; --fg: #17131f; --muted: #5d566c;
+    --yolk: #b07a00; --cola: #2448d6; --alarm: #c8183b; --ok: #13804a; color-scheme: light; }
+  body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--f-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+  .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 28px; }
+  header { display: grid; gap: 14px; }
+  .eyebrow { font: 700 12px var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--yolk); }
+  h1 { font: 800 clamp(34px, 6vw, 60px)/1 var(--f-display); letter-spacing: -.02em; text-wrap: balance; margin: 0; }
+  .lede { max-width: 66ch; color: var(--muted); margin: 0; }
+  .lede b { color: var(--fg); }
+  .notes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: 500 12px var(--f-mono); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--muted); }
+  .chip.warn { border-color: var(--alarm); color: var(--alarm); }
+  .tally { display: flex; flex-wrap: wrap; gap: 18px; align-items: baseline; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; font-variant-numeric: tabular-nums; }
+  .tally strong { font: 800 28px var(--f-display); }
+  .tally span { color: var(--muted); font-size: 14px; }
+  #saveMode { margin-left: auto; font: 500 12px var(--f-mono); color: var(--muted); }
+
+  .styles { display: grid; gap: 22px; list-style: none; padding: 0; margin: 0; }
+  .card { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  @media (max-width: 680px) { .card { grid-template-columns: minmax(0, 1fr); } .stage { max-width: 320px; margin: 0 auto; width: 100%; } }
+  .stage { position: relative; aspect-ratio: 9 / 16; max-width: 100%; border-radius: 10px; overflow: hidden; background: #000; }
+  .stage img.poster, .stage iframe { position: absolute; left: 0; top: 0; border: 0; }
+  .stage img.poster { width: 100%; height: 100%; object-fit: cover; }
+  .stage iframe { width: 1080px; height: 1920px; transform-origin: 0 0; pointer-events: none; }
+  .play { position: absolute; inset: auto 10px 10px 10px; display: flex; gap: 8px; }
+  .play button { flex: 1; font: 700 14px var(--f-body); border: 0; border-radius: 8px; padding: 10px 12px; background: rgba(10,8,16,.82); color: #fff; cursor: pointer; backdrop-filter: blur(4px); }
+  .play button.main { background: var(--cola); color: #fff; }
+  .play button:focus-visible, .scale button:focus-visible, textarea:focus-visible { outline: 3px solid var(--yolk); outline-offset: 2px; }
+  .bar { position: absolute; left: 0; top: 0; height: 4px; background: var(--yolk); width: 0; }
+
+  .info { display: grid; gap: 12px; align-content: start; min-width: 0; }
+  .info h2 { margin: 0; font: 800 26px/1.1 var(--f-display); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .info h2 .no { font: 700 14px var(--f-mono); color: var(--yolk); }
+  .pitch { margin: 0; max-width: 62ch; }
+  dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: 14px; }
+  dt { font: 700 11px/1.9 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  dd { margin: 0; }
+  .rate { display: grid; gap: 8px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .rate label, .rate .lbl { font: 700 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .scale { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+  .scale button { font: 700 15px var(--f-mono); padding: 9px 0; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; font-variant-numeric: tabular-nums; }
+  .scale button:hover { border-color: var(--yolk); }
+  .scale button[aria-pressed="true"] { background: var(--yolk); border-color: var(--yolk); color: #17131f; }
+  textarea { width: 100%; min-height: 84px; resize: vertical; font: 400 15px/1.45 var(--f-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; box-sizing: border-box; }
+  .status { font: 500 12px var(--f-mono); color: var(--muted); min-height: 1.4em; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--alarm); }
+
+  .rank { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .rank h2 { margin: 0 0 10px; font: 800 22px var(--f-display); }
+  .rank ol { margin: 0; padding-left: 22px; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+  .rank li span { color: var(--muted); }
+  .rank .empty { color: var(--muted); margin: 0; }
+  footer { color: var(--muted); font-size: 13px; max-width: 70ch; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Runde 1 · 10 Stilrichtungen · je 4 Takte bei 132 BPM (7,3 s)</div>
+    <h1>Minoverse Stilrunde 1</h1>
+    <p class="lede">Jede Karte ist ein echter HyperFrames-Clip, der hier live im Browser läuft. Drück auf <b>Abspielen</b> (mit Ton), gib eine Note von <b>1 bis 10</b> und schreib dazu, was hängen bleiben soll und was weg kann. Alles wird sofort gespeichert und ist die Grundlage für Runde 2.</p>
+    <div class="notes">
+      <span class="chip warn">Pepsi Grandma ist ein gezeichneter Platzhalter</span>
+      <span class="chip">Beats und Stimmen sind Platzhalter (synthetisch)</span>
+      <span class="chip">Struktur: Kaltstart → Drop bei Takt 3 → Payoff</span>
+    </div>
+    <div class="tally" aria-live="polite">
+      <div><strong id="nRated">0</strong> <span>von 10 bewertet</span></div>
+      <div><strong id="avg">–</strong> <span>Ø Note</span></div>
+      <div id="saveMode">Speicher wird verbunden …</div>
+    </div>
+  </header>
+
+  <ol class="styles" id="list"></ol>
+
+  <section class="rank" aria-labelledby="rankH">
+    <h2 id="rankH">Deine Reihenfolge</h2>
+    <ol id="rank"></ol>
+    <p class="empty" id="rankEmpty">Sobald du die ersten Stile bewertet hast, erscheint hier das Ranking.</p>
+  </section>
+
+  <footer>Figuren: Mino Man (Freisteller aus deinem News-Bild und dem Kletter-Clip), Chicken Guy (Tanz-Sprite aus dem Hühner-Clip), Pepsi Grandma (Platzhalter, bis der echte Clip da ist). Die Clips sind 1080 × 1920 und lassen sich mit HyperFrames direkt als MP4 rendern.</footer>
+</div>
+
+<script>
+const DUR = 16 * 60 / 132;
+const STYLES = [
+  { id: '01', file: '01-mino-schau.html', name: 'Mino-Schau', pitch: 'Seriöse Abendnachrichten, die beim Drop wegschmelzen. Mino Man moderiert einfach weiter.',
+    sig: 'Studio, Bauchbinde, gelber Ticker mit Pepsi-Grandma-Meldung, Mino Man bleibt immer deadpan', play: 'Was auf dem Studio-Bildschirm läuft und wie das Studio zerfällt', lore: 'Broadcast-Format mit unabhängigem Ticker' },
+  { id: '02', file: '02-museum-fieber.html', name: 'Museum-Fieber', pitch: 'Ein Gemälde im Museum, das auf dem Drop lebendig wird. Cherubim mit Chicken-Guy-Köpfen, Blattgold regnet.',
+    sig: 'Goldrahmen, Museumsschild mit absurdem Titel („Öl auf Frittierfett“), Mino Man als Aufsicht', play: 'Jede Epoche, jedes Gemälde, jede Figur', lore: 'Dein Gemälde-Kopftausch-Stil' },
+  { id: '03', file: '03-fraktal-kosmos.html', name: 'Fraktal-Kosmos', pitch: 'Endloser Mandelbrot-Zoom, Kaleidoskop ab dem Drop, Chicken Guys umkreisen den Gesandten.',
+    sig: 'Fraktal-Zoom und goldene Glyphen-Schrift', play: 'Jede Szene kann im Kosmos schweben', lore: 'Dein Fraktal-Hintergrund-Stil, Uberan Mino als abwesender Gott' },
+  { id: '04', file: '04-amtsdeutsch.html', name: 'Amtsdeutsch', pitch: 'Eine Vermisstenanzeige wird getippt, dann knallen Stempel auf den Beat. Am Ende frisst Officer Munch die Akte.',
+    sig: 'Formular, Schreibmaschine, Stempel als Percussion, Bissspuren', play: 'Jede Story als Antrag, Bescheid oder Akte', lore: 'Ordnung gegen Chaos, Officer Munch' },
+  { id: '05', file: '05-nachtsicht.html', name: 'Nachtsicht', pitch: 'Überwachungskamera mit 8 fps. Chicken Guy taucht auf und verschwindet, beim Drop kippt alles ins Wärmebild.',
+    sig: 'HUD, laufender Zeitstempel, „BEWEGUNG ERKANNT“', play: 'Kamera 1 bis n an immer neuen Orten', lore: 'Arc „Wo ist Chicken Guy?“ als Found Footage' },
+  { id: '06', file: '06-bastelstunde.html', name: 'Bastelstunde', pitch: 'Kinderfernsehen aus Pappe und Stickern, mit Wackelaugen. Heute basteln wir einen Gott.',
+    sig: 'Karton, weiße Sticker-Kanten, 8-fps-Stop-Motion, Wackelaugen', play: 'Bastelanleitungen für alles im Minoverse', lore: 'Erklärformat für die Lore' },
+  { id: '07', file: '07-grosswetterlage.html', name: 'Großwetterlage', pitch: 'Musik ist Wetter: Wetterkarte mit BPM statt Grad, einer Speed-Garage-Front und veganem Hotdog-Regen.',
+    sig: 'Karte, Fronten, BPM-Temperaturen, Unwetterwarnungen', play: 'Jeder neue Track als Wetterereignis', lore: 'Musik verhält sich wie Wetter, Vegan Hot Dog Rain' },
+  { id: '08', file: '08-frittiert.html', name: 'Frittiert', pitch: 'Klassisches Deep-Fried-Meme, das jeden Takt eine Frittierstufe höher geht. Bruder. Was.',
+    sig: 'Frittierstufe 1/4 bis 4/4, Zoom-Punches, Lens-Flare-Augen', play: 'Jedes Material lässt sich frittieren', lore: 'Am nächsten an deinem bisherigen Brainrot-Content' },
+  { id: '09', file: '09-endlos-schleife.html', name: 'Endlos-Schleife', pitch: 'Mino Man hält einen Fernseher, in dem Mino Man einen Fernseher hält. Ein Zoom pro Takt, perfekter Reel-Loop.',
+    sig: 'Droste-Zoom, nahtloser Loop', play: 'Was im Fernseher passiert', lore: 'Mino Man als einziger Journalist berichtet über sich selbst' },
+  { id: '10', file: '10-teleshopping.html', name: 'Teleshopping', pitch: 'Verkaufssender um drei Uhr nachts. Der Preis fällt auf jeden Beat, bis alles ausverkauft ist.',
+    sig: 'Preis-Sterne, Hotline-Leiste, „AUSVERKAUFT“-Stempel', play: 'Jedes Lore-Objekt kann verkauft werden', lore: 'Pepsi Grandma als Produkt' },
+];
+
+const state = {};             // id → { note, feedback }
+STYLES.forEach((s) => (state[s.id] = { note: null, feedback: '' }));
+let db = null, col = null;
+const LS = 'minoverse-stilrunde-1';
+function lsRead() { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch (e) { return {}; } }
+function lsWrite() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+
+// ---------- Karten ----------
+const list = document.getElementById('list');
+const cards = {};
+STYLES.forEach((s) => {
+  const li = document.createElement('li');
+  li.className = 'card';
+  li.id = 'stil-' + s.id;
+  li.innerHTML = `
+    <div class="stage" data-id="${s.id}">
+      <img class="poster" src="posters/${s.id}.webp" alt="Standbild ${s.name}">
+      <div class="bar"></div>
+      <div class="play"><button class="main" type="button">&#9654; Abspielen</button><button class="mute" type="button" aria-pressed="false">Ton an</button></div>
+    </div>
+    <div class="info">
+      <h2><span class="no">${s.id}</span>${s.name}</h2>
+      <p class="pitch">${s.pitch}</p>
+      <dl>
+        <dt>Signatur</dt><dd>${s.sig}</dd>
+        <dt>Spielraum</dt><dd>${s.play}</dd>
+        <dt>Lore</dt><dd>${s.lore}</dd>
+      </dl>
+      <div class="rate">
+        <span class="lbl" id="lbl-${s.id}">Note</span>
+        <div class="scale" role="group" aria-labelledby="lbl-${s.id}">
+          ${Array.from({ length: 10 }, (_, i) => `<button type="button" data-n="${i + 1}" aria-pressed="false">${i + 1}</button>`).join('')}
+        </div>
+        <label for="fb-${s.id}">Feedback</label>
+        <textarea id="fb-${s.id}" placeholder="Was soll bleiben, was muss weg, was fehlt?"></textarea>
+        <div class="status" aria-live="polite"></div>
+      </div>
+    </div>`;
+  list.appendChild(li);
+  const c = { li, stage: li.querySelector('.stage'), status: li.querySelector('.status'), ta: li.querySelector('textarea'), btns: [...li.querySelectorAll('.scale button')] };
+  cards[s.id] = c;
+  c.btns.forEach((b) => b.addEventListener('click', () => {
+    const n = Number(b.dataset.n);
+    state[s.id].note = state[s.id].note === n ? null : n;
+    paint(s.id); save(s.id);
+  }));
+  let timer = null;
+  c.ta.addEventListener('input', () => {
+    state[s.id].feedback = c.ta.value;
+    setStatus(s.id, 'Wird gespeichert …');
+    clearTimeout(timer); timer = setTimeout(() => save(s.id), 700);
+  });
+  c.ta.addEventListener('blur', () => { clearTimeout(timer); if (c.ta.value !== state[s.id]._saved) save(s.id); });
+  li.querySelector('.main').addEventListener('click', () => toggle(s));
+  li.querySelector('.mute').addEventListener('click', (e) => {
+    muted = !muted;
+    document.querySelectorAll('.mute').forEach((m) => { m.textContent = muted ? 'Ton aus' : 'Ton an'; m.setAttribute('aria-pressed', String(muted)); });
+    if (audio) audio.muted = muted;
+  });
+});
+
+function paint(id) {
+  const c = cards[id], st = state[id];
+  c.btns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === st.note)));
+  if (document.activeElement !== c.ta) c.ta.value = st.feedback || '';
+  summary();
+}
+function setStatus(id, txt, cls) { const el = cards[id].status; el.textContent = txt; el.className = 'status' + (cls ? ' ' + cls : ''); }
+
+function summary() {
+  const rated = STYLES.filter((s) => state[s.id].note);
+  document.getElementById('nRated').textContent = rated.length;
+  document.getElementById('avg').textContent = rated.length ? (rated.reduce((a, s) => a + state[s.id].note, 0) / rated.length).toFixed(1).replace('.', ',') : '–';
+  const r = document.getElementById('rank');
+  r.textContent = '';
+  rated.sort((a, b) => state[b.id].note - state[a.id].note).forEach((s) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<b></b> <span></span>`;
+    li.querySelector('b').textContent = `${s.name} · ${state[s.id].note}/10`;
+    li.querySelector('span').textContent = state[s.id].feedback ? '– ' + state[s.id].feedback.slice(0, 80) + (state[s.id].feedback.length > 80 ? '…' : '') : '';
+    r.appendChild(li);
+  });
+  document.getElementById('rankEmpty').hidden = rated.length > 0;
+}
+
+// ---------- Speichern ----------
+async function save(id) {
+  const s = STYLES.find((x) => x.id === id), st = state[id];
+  lsWrite();
+  if (!col) { setStatus(id, 'Nur in diesem Browser gespeichert', ''); return; }
+  setStatus(id, 'Wird gespeichert …');
+  try {
+    await col.doc(id).set({ stil: s.name, note: st.note, feedback: st.feedback || '', aktualisiert: new Date().toISOString() });
+    st._saved = st.feedback;
+    setStatus(id, 'Gespeichert \u2713', 'ok');
+  } catch (e) {
+    setStatus(id, 'Speichern fehlgeschlagen: ' + (e && e.code ? e.code : 'unbekannt') + '. Lokal gesichert.', 'err');
+  }
+}
+
+(function initLocal() {
+  const saved = lsRead();
+  Object.keys(saved).forEach((id) => { if (state[id]) { state[id].note = saved[id].note ?? null; state[id].feedback = saved[id].feedback || ''; } });
+  STYLES.forEach((s) => paint(s.id));
+})();
+
+(async function initDb() {
+  const mode = document.getElementById('saveMode');
+  try { db = window.claude && (await window.claude.use('db')); } catch (e) { db = null; }
+  if (!db) { mode.textContent = 'Speichert nur in diesem Browser'; return; }
+  col = db.collection('bewertungen');
+  mode.textContent = 'Speichert automatisch';
+  let first = true;
+  col.onSnapshot((snap) => {
+    snap.docs.forEach((d) => {
+      const v = d.data(); if (!v || !state[d.id]) return;
+      state[d.id].note = v.note ?? null;
+      if (document.activeElement !== cards[d.id].ta) state[d.id].feedback = v.feedback || '';
+      state[d.id]._saved = v.feedback || '';
+      paint(d.id);
+    });
+    if (first) {
+      first = false;
+      // Lokale Eingaben, die noch nicht im Speicher sind, nachtragen
+      const remote = new Set(snap.docs.map((d) => d.id));
+      STYLES.forEach((s) => { const st = state[s.id]; if (!remote.has(s.id) && (st.note || st.feedback)) save(s.id); });
+    }
+  }, () => { mode.textContent = 'Verbindung zum Speicher unterbrochen, lokal gesichert'; });
+})();
+
+// ---------- Abspielen ----------
+let current = null, audio = null, raf = 0, muted = false, t0 = 0;
+function fit(stage) {
+  const f = stage.querySelector('iframe'); if (!f) return;
+  f.style.transform = `scale(${stage.clientWidth / 1080})`;
+}
+window.addEventListener('resize', () => document.querySelectorAll('.stage').forEach(fit));
+function stop() {
+  if (!current) return;
+  cancelAnimationFrame(raf);
+  if (audio) { audio.pause(); audio = null; }
+  const st = cards[current.id].stage;
+  const f = st.querySelector('iframe'); if (f) f.remove();
+  st.querySelector('.poster').hidden = false;
+  st.querySelector('.bar').style.width = '0';
+  st.querySelector('.main').textContent = '\u25B6 Abspielen';
+  current = null;
+}
+function toggle(s) {
+  if (current && current.id === s.id) { stop(); return; }
+  stop();
+  current = s;
+  const st = cards[s.id].stage;
+  const f = document.createElement('iframe');
+  f.title = s.name; f.setAttribute('tabindex', '-1');
+  f.src = 'clips/' + s.file;
+  st.insertBefore(f, st.querySelector('.bar'));
+  fit(st);
+  st.querySelector('.main').textContent = '\u25A0 Stopp';
+  audio = new Audio('clips/audio/' + s.id + '.mp3');
+  audio.loop = true; audio.muted = muted;
+  let useClock = false;
+  audio.play().catch(() => { useClock = true; t0 = performance.now(); });
+  f.addEventListener('load', () => {
+    st.querySelector('.poster').hidden = true;
+    t0 = performance.now();
+    const loop = () => {
+      if (current !== s) return;
+      const t = useClock || !audio || audio.paused ? ((performance.now() - t0) / 1000) % DUR : audio.currentTime % DUR;
+      try { f.contentWindow.postMessage({ mv: 'seek', t }, '*'); } catch (e) {}
+      st.querySelector('.bar').style.width = (t / DUR) * 100 + '%';
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+  });
+}
+</script>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>09 Endlos-Schleife</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mv.js"></script>
+<style>
+  /* Droste-Rekursion: Fixpunkt (540,1150), Bildschirm = Szene × 0,4 */
+  #zoom { transform-origin: 540px 1150px; }
+  .lvl { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; filter: hue-rotate(45deg); }
+  .lvl.top { filter: none; }
+  .bg { position: absolute; inset: -400px; background: repeating-conic-gradient(from 0deg at 50% 55%, #2b0a5e 0 9deg, #6a1fb0 9deg 18deg); }
+  .anchor { position: absolute; left: 150px; top: 180px; width: 780px; }
+  .tv { position: absolute; left: 274px; top: 640px; width: 532px; height: 930px; background: linear-gradient(135deg, #8a5a2b, #5a3816); border-radius: 36px; box-shadow: 0 24px 50px rgba(0,0,0,.6), inset 0 0 0 10px #3b240e; }
+  .tv::after { content: ''; position: absolute; left: 50%; bottom: -60px; width: 220px; height: 60px; margin-left: -110px; background: #2a1a0a; clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); }
+  .screen { position: absolute; left: 324px; top: 690px; width: 432px; height: 768px; overflow: hidden; background: #000; }
+  .screen > .lvl { transform: scale(.4); transform-origin: 0 0; }
+  .cg { position: absolute; left: 800px; top: 1180px; width: 236px; height: 420px; }
+  .pg { position: absolute; left: 20px; top: 1330px; width: 220px; }
+  .tag { position: absolute; left: 40px; top: 120px; font: 400 64px 'Bungee', sans-serif; color: #ffe600; text-shadow: 5px 5px 0 #ff0080; }
+  #cap { left: 0; right: 0; bottom: 280px; text-align: center; font: 400 64px 'Bungee'; color: #fff; text-shadow: 0 0 20px #f0f, 4px 4px 0 #000; }
+  #live { right: 40px; top: 60px; font: 700 46px 'Oswald'; color: #fff; background: #e00; padding: 2px 16px; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="7.2727" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="7.2727" data-track-index="9" src="audio/09.mp3"></audio>
+  <div id="zoom" class="clip"></div>
+  <div id="cap" class="abs">LIVE AUS<br>MINO MAN</div>
+  <div id="live" class="abs">LIVE</div>
+</div>
+<script>
+  const S = 0.4, DEPTH = 6;
+  const zoom = document.getElementById('zoom');
+  const sprites = [], bgs = [];
+  function level(d) {
+    const l = document.createElement('div');
+    l.className = 'lvl' + (d === DEPTH ? ' top' : '');
+    l.innerHTML = `<div class="bg"></div><img class="anchor" src="assets/mm_anchor.webp" alt=""><div class="tv"></div><div class="screen"></div>
+      <div class="cg"></div><img class="pg" src="assets/pg.svg" alt=""><div class="tag">MINO MAN</div>`;
+    bgs.push(l.querySelector('.bg'));
+    sprites.push(MV.sprite(l.querySelector('.cg'), MV.CG));
+    if (d > 0) l.querySelector('.screen').appendChild(level(d - 1));
+    return l;
+  }
+  zoom.appendChild(level(DEPTH));
+  const tl = gsap.timeline({ paused: true });
+  tl.from('#cap', { scale: 0, duration: 0.3, ease: 'back.out(2)' }, MV.b(1));
+  const P = MV.BAR; // eine Ebene pro Takt → nahtloser Loop
+  MV.onFrame((t) => {
+    const ph = (t % P) / P;
+    const e = ph; // linear: konstante Zoomgeschwindigkeit
+    zoom.style.transform = `scale(${Math.pow(1 / S, e)})`;
+    zoom.style.filter = `hue-rotate(${-45 * e}deg)`;
+    const p = MV.pulse(t, 7);
+    bgs.forEach((b) => (b.style.transform = `rotate(${t * 20}deg) scale(${1 + 0.05 * p})`));
+    sprites.forEach((s) => s(t * 10));
+    document.getElementById('cap').style.scale = 1 + 0.08 * p;
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

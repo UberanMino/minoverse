@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>03 Fraktal-Kosmos</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mv.js"></script>
+<style>
+  #fx { width: 1080px; height: 1920px; }
+  #corona { left: 540px; top: 640px; width: 1400px; height: 1400px; margin: -700px 0 0 -700px; border-radius: 50%;
+    background: repeating-conic-gradient(rgba(255,230,140,.55) 0 4deg, transparent 4deg 12deg);
+    -webkit-mask: radial-gradient(circle, transparent 18%, #000 22%, transparent 60%); mask: radial-gradient(circle, transparent 18%, #000 22%, transparent 60%); mix-blend-mode: screen; }
+  #god { left: 540px; top: 640px; width: 420px; margin: -280px 0 0 -210px; filter: drop-shadow(0 0 40px #fff6) drop-shadow(0 0 120px #ffcc33); }
+  .orb { width: 236px; height: 420px; transform-origin: 50% 50%; }
+  #pg { left: 60px; top: 1200px; width: 220px; }
+  #glyph { left: 0; right: 0; top: 1310px; padding: 20px 0 130px; background: linear-gradient(transparent, rgba(0,0,0,.6) 25%, rgba(0,0,0,.6) 75%, transparent); text-align: center; font: 900 92px 'Cinzel'; letter-spacing: 10px; color: #ffe38a;
+    text-shadow: 0 0 18px #ffb300, 0 0 60px #ff6a00, 4px 4px 0 #3a1500; }
+  #glyph2 { left: 0; right: 0; top: 1470px; text-align: center; font: 400 52px 'Cinzel'; letter-spacing: 14px; white-space: nowrap; color: #fff; text-shadow: 0 0 20px #8af; }
+  #vign { background: radial-gradient(70% 55% at 50% 45%, transparent 55%, rgba(0,0,0,.65)); pointer-events: none; }
+  #flash { background: #fff; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="7.2727" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="7.2727" data-track-index="9" src="audio/03.mp3"></audio>
+  <canvas id="fx" class="clip"></canvas>
+  <div id="corona" class="abs"></div>
+  <div id="orbits" class="clip"></div>
+  <img id="god" class="abs" src="assets/mm_head.webp" alt="">
+  <img id="pg" class="abs sticker" src="assets/pg.svg" alt="">
+  <div id="glyph" class="abs">DER GESANDTE</div>
+  <div id="glyph2" class="abs">UBERAN MINO SIEHT ALLES</div>
+  <div id="vign" class="clip"></div>
+  <div id="flash" class="clip"></div>
+</div>
+<script>
+  const DROP = MV.BAR * 2;
+  const tl = gsap.timeline({ paused: true });
+  const chars = MV.split(document.getElementById('glyph'));
+  tl.from(chars, { opacity: 0, y: -60, scale: 2, stagger: MV.BEAT / 4, duration: 0.3, ease: 'back.out(2)' }, MV.b(1));
+  tl.from('#glyph2', { opacity: 0, letterSpacing: '60px', duration: 0.6, ease: 'expo.out' }, DROP);
+  tl.from('#god', { scale: 0, rotation: -180, duration: 1.2, ease: 'expo.out' }, 0);
+  tl.to('#flash', { opacity: 1, duration: 0.03 }, DROP - 0.02).to('#flash', { opacity: 0, duration: 0.4 }, DROP + 0.02);
+
+  const draw = MV.fractal(document.getElementById('fx'), { w: 432, h: 768 });
+  const orbits = document.getElementById('orbits');
+  const sprites = [];
+  for (let i = 0; i < 6; i++) {
+    const d = document.createElement('div'); d.className = 'sprite orb'; orbits.appendChild(d);
+    sprites.push({ el: d, set: MV.sprite(d, MV.CG) });
+  }
+  const god = document.getElementById('god'), corona = document.getElementById('corona'), pg = document.getElementById('pg');
+  MV.onFrame((t) => {
+    const after = t >= DROP;
+    const p = MV.pulse(t, 6);
+    // Zoom kontinuierlich exponentiell, Palette rotiert, nach Drop Kaleidoskop
+    draw({ zoom: 0.06 * Math.pow(0.6, t), rot: t * (after ? 0.5 : 0.08), hue: t * (after ? 0.35 : 0.05), kaleido: after });
+    god.style.translate = `0 ${Math.sin(t * 1.4) * 14}px`;
+    god.style.scale = 1 + (after ? 0.12 * p : 0);
+    corona.style.transform = `rotate(${t * 25}deg) scale(${1 + 0.15 * p})`;
+    sprites.forEach((s, i) => {
+      const on = after || i < 2;
+      const a = t * (after ? 1.6 : 0.7) + (i / 6) * Math.PI * 2;
+      const z = Math.sin(a); // -1 hinten, 1 vorne
+      const sc = 0.55 + 0.35 * (z + 1) / 2;
+      s.el.style.opacity = on ? 1 : 0;
+      s.el.style.left = 540 + Math.cos(a) * 420 - 118 + 'px';
+      s.el.style.top = 640 + z * 170 - 210 + 'px';
+      s.el.style.transform = `scale(${sc}) scaleX(${i % 2 ? -1 : 1}) rotate(${after ? Math.sin(t * 4 + i) * 12 : 0}deg)`;
+      s.el.style.zIndex = z > 0 ? 3 : 1;
+      s.el.style.filter = after ? `hue-rotate(${i * 60 + t * 90}deg) saturate(1.6)` : 'none';
+      s.set(t * 10 + i * 6);
+    });
+    god.style.zIndex = 2;
+    pg.style.transform = `translate(${t * 40}px, ${-t * 30}px) rotate(${t * 50}deg)`;
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>06 Bastelstunde</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mv.js"></script>
+<style>
+  #card { background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0 2px, transparent 3px) 0 0/23px 23px,
+      radial-gradient(circle at 70% 60%, rgba(0,0,0,.06) 0 2px, transparent 3px) 0 0/31px 31px,
+      linear-gradient(170deg, #d9a86a, #b9824a); }
+  .paper { background: #fff; box-shadow: 4px 6px 0 rgba(0,0,0,.18); }
+  #sky { left: 60px; top: 160px; width: 960px; height: 900px; background: #6cc6ff; border-radius: 30px; transform: rotate(-1.5deg); box-shadow: 6px 8px 0 rgba(0,0,0,.2); overflow: hidden; }
+  #sun { left: 620px; top: 70px; width: 300px; height: 300px; }
+  #sun .disk { position: absolute; inset: 40px; background: #ffd21f; border-radius: 50%; box-shadow: 0 0 0 10px #ff9f1c; }
+  #sun .ray { position: absolute; left: 140px; top: -10px; width: 20px; height: 70px; background: #ffb21c; border-radius: 10px; transform-origin: 10px 160px; }
+  #sun .face { position: absolute; left: 82px; top: 75px; width: 136px; border-radius: 50%; }
+  .cloud { width: 260px; height: 110px; background: #fff; border-radius: 60px; }
+  .cloud::before { content: ''; position: absolute; left: 50px; top: -50px; width: 120px; height: 120px; background: #fff; border-radius: 50%; }
+  #hill { left: -60px; right: -60px; bottom: -120px; height: 380px; background: #46c35a; border-radius: 50% 50% 0 0; box-shadow: inset 0 14px 0 #2fa043; }
+  #puppet { left: 120px; top: 520px; width: 340px; height: 900px; transform-origin: 50% 100%; }
+  #puppet .stick { position: absolute; left: 160px; top: 400px; width: 26px; height: 520px; background: linear-gradient(90deg, #e9c58c, #c99a5a); border-radius: 12px; }
+  #puppet .body { position: absolute; left: 50px; top: 300px; width: 250px; height: 280px; background: #2a3f8f; border-radius: 40px 40px 20px 20px; border: 8px solid #fff; }
+  #puppet .tie { position: absolute; left: 155px; top: 320px; width: 40px; height: 160px; background: #b0186b; clip-path: polygon(30% 0, 70% 0, 100% 80%, 50% 100%, 0 80%); }
+  #puppet img { position: absolute; left: 30px; top: 0; width: 290px; }
+  .eye { width: 70px; height: 70px; background: #fff; border-radius: 50%; border: 4px solid #222; }
+  .eye i { position: absolute; width: 32px; height: 32px; background: #111; border-radius: 50%; }
+  #hen { left: 560px; top: 760px; width: 400px; height: 520px; transform-origin: 50% 100%; }
+  #hen .bod { position: absolute; left: 40px; top: 170px; width: 320px; height: 300px; background: #f2a73b; border-radius: 50% 50% 45% 45%; border: 8px solid #fff; }
+  #hen .wing { position: absolute; top: 260px; width: 120px; height: 150px; background: #e08a1e; border: 6px solid #fff; border-radius: 60% 40% 60% 40%; }
+  #hen .leg { position: absolute; top: 450px; width: 16px; height: 80px; background: #ff7a00; }
+  #hen img { position: absolute; left: 110px; top: 0; width: 180px; }
+  #title { left: 50px; right: 50px; top: 1340px; text-align: center; font: 400 120px 'Caveat Brush', cursive; color: #fff; line-height: .95; text-shadow: 5px 5px 0 #e2336b, 10px 10px 0 #2a3f8f; }
+  #pg { right: 50px; top: 1100px; width: 190px; }
+  #glitter { pointer-events: none; }
+  #glitter span { position: absolute; width: 44px; height: 44px; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
+  #tape1, #tape2 { width: 220px; height: 60px; background: rgba(255,245,200,.75); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="7.2727" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="7.2727" data-track-index="9" src="audio/06.mp3"></audio>
+  <div id="card" class="clip"></div>
+  <div id="sky" class="abs">
+    <div class="abs cloud" id="cl1" style="left:60px;top:150px"></div>
+    <div class="abs cloud" id="cl2" style="left:380px;top:300px;transform:scale(.7)"></div>
+    <div id="sun" class="abs"><div class="disk"></div><img class="face" src="assets/mm_head.webp" alt=""></div>
+    <div id="hill" class="abs"></div>
+  </div>
+  <div id="tape1" class="abs" style="left:40px;top:140px;transform:rotate(-30deg)"></div>
+  <div id="tape2" class="abs" style="right:40px;top:1010px;transform:rotate(-25deg)"></div>
+  <div id="puppet" class="abs sticker"><div class="stick"></div><div class="body"></div><div class="tie"></div><img src="assets/mm_head.webp" alt="">
+    <div class="abs eye" style="left:95px;top:118px"><i style="left:16px;top:16px"></i></div><div class="abs eye" style="left:195px;top:112px"><i style="left:16px;top:16px"></i></div></div>
+  <div id="hen" class="abs sticker"><div class="wing" style="left:0"></div><div class="wing" style="right:0"></div><div class="bod"></div><div class="leg" style="left:150px"></div><div class="leg" style="left:230px"></div><img src="assets/cg_head.webp" alt=""></div>
+  <div id="title" class="abs">Heute basteln wir:<br>einen Gott!</div>
+  <img id="pg" class="abs sticker" src="assets/pg.svg" alt="">
+  <div id="glitter" class="clip"></div>
+</div>
+<script>
+  const DROP = MV.BAR * 2;
+  const tl = gsap.timeline({ paused: true });
+  // Stop-Motion: alles in 8er-Schritten (steps)
+  tl.from('#puppet', { y: 900, duration: MV.b(2), ease: 'steps(8)' }, 0);
+  tl.from('#hen', { x: 700, duration: MV.b(2), ease: 'steps(8)' }, MV.b(2));
+  tl.from('#title', { scale: 0, rotation: -20, duration: MV.b(1), ease: 'steps(5)' }, MV.b(4));
+  tl.from('#pg', { y: 1000, rotation: 40, duration: MV.b(1), ease: 'steps(6)' }, MV.b(10));
+  const sun = document.getElementById('sun');
+  for (let i = 0; i < 12; i++) { const r = document.createElement('div'); r.className = 'ray'; r.style.transform = `rotate(${i * 30}deg)`; sun.prepend(r); }
+  const gl = document.getElementById('glitter'); const G = [];
+  const cols = ['#ff3d7f', '#ffd21f', '#4ad7ff', '#7cff4a', '#b46bff'];
+  for (let i = 0; i < 46; i++) { const s = document.createElement('span'); s.style.background = cols[i % 5]; gl.appendChild(s); G.push(s); }
+  const puppet = document.getElementById('puppet'), hen = document.getElementById('hen'), title = document.getElementById('title');
+  const eyes = [...document.querySelectorAll('.eye i')];
+  MV.onFrame((t) => {
+    const tq = Math.floor(t * 8) / 8; // 8 fps Stop-Motion
+    const after = t >= DROP;
+    const bi = MV.beatIndex(t);
+    sun.style.transform = `rotate(${tq * (after ? 90 : 20)}deg) scale(${after ? 1.25 + 0.1 * (bi % 2) : 1})`;
+    // Wackelaugen (zufaellig je Frame)
+    eyes.forEach((e, i) => { e.style.translate = `${(MV.hash(tq * 8 + i) - 0.5) * 30}px ${(MV.hash(tq * 8 + i + 9) - 0.5) * 30}px`; });
+    // Puppe huepft auf jeden Schlag, nach dem Drop wilder
+    puppet.style.rotate = `${(bi % 2 ? 1 : -1) * (after ? 14 : 4)}deg`;
+    puppet.style.scale = after ? 1 + 0.08 * (bi % 2) : 1;
+    hen.style.rotate = `${(bi % 2 ? -1 : 1) * (after ? 18 : 5)}deg`;
+    hen.style.translate = after ? `0 ${-(bi % 2) * 60}px` : '0 0';
+    title.style.rotate = `${(MV.hash(Math.floor(tq * 4)) - 0.5) * 6}deg`;
+    // Glitzer-Explosion nach dem Drop
+    G.forEach((s, i) => {
+      const h = MV.hash(i + 1), h2 = MV.hash(i + 40);
+      const tt = tq - DROP;
+      s.style.opacity = tt >= 0 ? 1 : 0;
+      const a = h * Math.PI * 2, r = (tt % MV.BAR) * (500 + 400 * h2);
+      s.style.left = 540 + Math.cos(a) * r + 'px'; s.style.top = 900 + Math.sin(a) * r + 'px';
+      s.style.transform = `scale(${1 + h2 * 1.5}) rotate(${tt * 200}deg)`;
+    });
+    // Leichtes Wackeln des ganzen Bastelbogens (Kamera auf Stativ, schlecht)
+    document.getElementById('sky').style.background = after ? `conic-gradient(from ${tq * 120}deg at 70% 25%, #ff6bd6, #ffe14d, #6cff8a, #4ad7ff, #b46bff, #ff6bd6)` : '#6cc6ff';
+    document.getElementById('sky').style.translate = `${(MV.hash(tq * 8 + 3) - 0.5) * 6}px ${(MV.hash(tq * 8 + 5) - 0.5) * 6}px`;
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>

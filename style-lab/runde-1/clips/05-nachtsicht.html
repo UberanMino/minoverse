@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>05 Nachtsicht</title>
+<link rel="stylesheet" href="lib/base.css">
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mv.js"></script>
+<style>
+  #scene { overflow: hidden; }
+  #wall { left: 0; right: 0; top: 0; height: 1000px; background: repeating-linear-gradient(0deg, #3a3a3a 0 4px, #555 4px 90px), #4a4a4a; }
+  #wall::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 178px, #2a2a2a 178px 184px); opacity: .6; }
+  #door { left: 600px; top: 420px; width: 300px; height: 580px; background: #111; border: 14px solid #777; }
+  #lamp { left: 520px; top: 120px; width: 90px; height: 40px; background: #ddd; border-radius: 0 0 50% 50%; box-shadow: 0 0 120px 60px rgba(255,255,255,.35); }
+  #floor { left: -400px; right: -400px; top: 1000px; bottom: 0; background:
+      repeating-linear-gradient(90deg, #666 0 6px, transparent 6px 160px), repeating-linear-gradient(0deg, #666 0 6px, transparent 6px 120px), #3b3b3b;
+    transform: perspective(600px) rotateX(55deg); transform-origin: 50% 0; }
+  #straw { left: 0; right: 0; top: 1000px; height: 140px; background: repeating-linear-gradient(80deg, #8a8a8a 0 3px, transparent 3px 11px); opacity: .5; }
+  .cg { width: 236px; height: 420px; transform-origin: 50% 100%; }
+  #climb { left: -40px; top: 300px; width: 282px; height: 480px; }
+  #pg { left: 650px; top: 600px; width: 200px; opacity: 0; }
+  #nv { filter: grayscale(1) contrast(1.3) brightness(1.15) sepia(1) hue-rotate(60deg) saturate(3.5); }
+  #grain { width: 1080px; height: 1920px; mix-blend-mode: screen; opacity: .55; image-rendering: pixelated; }
+  #scan { background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 2px, transparent 2px 5px); }
+  #vig { background: radial-gradient(75% 60% at 50% 50%, transparent 55%, rgba(0,0,0,.92)); }
+  #hud { font: 400 64px 'VT323', monospace; color: #e8ffe8; text-shadow: 0 0 8px #7f7; }
+  #hud .tl { left: 60px; top: 70px; } #hud .tr { right: 60px; top: 70px; } #hud .bl { left: 60px; bottom: 330px; } #hud .br { right: 60px; bottom: 330px; }
+  .rec::before { content: '●'; color: #f33; margin-right: 10px; }
+  .br-c { width: 120px; height: 120px; border: 6px solid #e8ffe8; }
+  #alert { left: 90px; right: 90px; top: 760px; text-align: center; font: 400 120px 'VT323'; color: #fff; background: #d0101e; padding: 6px 0; opacity: 0; box-shadow: 0 0 60px #f00; }
+  #lost { background: #0a0a0a; color: #eee; font: 400 110px 'VT323'; display: grid; place-items: center; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="7.2727" data-width="1080" data-height="1920">
+  <audio id="music" data-start="0" data-duration="7.2727" data-track-index="9" src="audio/05.mp3"></audio>
+  <div id="nv" class="clip">
+    <div id="scene" class="clip">
+      <div id="wall" class="abs"><div id="door" class="abs"></div><div id="lamp" class="abs"></div></div>
+      <div id="floor" class="abs"></div>
+      <div id="straw" class="abs"></div>
+      <img id="pg" class="abs" src="assets/pg.svg" alt="">
+      <div id="climb" class="sprite"></div>
+      <div id="cgs" class="clip"></div>
+    </div>
+  </div>
+  <canvas id="grain" class="clip"></canvas>
+  <div id="scan" class="clip"></div>
+  <div id="vig" class="clip"></div>
+  <div id="hud" class="clip">
+    <div class="abs tl">KAM 03 · HÜHNERSTALL</div>
+    <div class="abs tr rec" id="rec">REC</div>
+    <div class="abs bl" id="ts">24.10.2026 03:13:00</div>
+    <div class="abs br">IR ×4</div>
+    <div class="abs br-c" style="left:40px;top:160px;border-right:0;border-bottom:0"></div>
+    <div class="abs br-c" style="right:40px;top:160px;border-left:0;border-bottom:0"></div>
+    <div class="abs br-c" style="left:40px;bottom:420px;border-right:0;border-top:0"></div>
+    <div class="abs br-c" style="right:40px;bottom:420px;border-left:0;border-top:0"></div>
+  </div>
+  <div id="alert" class="abs">BEWEGUNG ERKANNT</div>
+  <div id="lost" class="clip">SIGNAL VERLOREN</div>
+</div>
+<script>
+  const DROP = MV.BAR * 2;
+  const tl = gsap.timeline({ paused: true });
+  tl.to('#alert', { opacity: 1, duration: 0.01 }, DROP).to('#alert', { opacity: 0, duration: 0.01 }, DROP + MV.b(2));
+  tl.to('#lost', { opacity: 1, duration: 0.01 }, MV.DUR - MV.b(1)).to('#lost', { opacity: 0, duration: 0.01 }, MV.DUR - MV.b(0.5));
+
+  MV.grain(document.getElementById('grain'), { w: 216, h: 384, alpha: 70, seed: 5 });
+  const cgs = document.getElementById('cgs');
+  const C = [];
+  for (let i = 0; i < 5; i++) { const d = document.createElement('div'); d.className = 'sprite cg'; cgs.appendChild(d); C.push({ el: d, set: MV.sprite(d, MV.CG) }); }
+  const climb = MV.sprite(document.getElementById('climb'), MV.CLIMB);
+  const nv = document.getElementById('nv'), scene = document.getElementById('scene'), ts = document.getElementById('ts'), rec = document.getElementById('rec');
+  const climbEl = document.getElementById('climb'), pg = document.getElementById('pg');
+  MV.onFrame((t) => {
+    const tq = Math.floor(t * 8) / 8; // Ueberwachungskamera: 8 fps
+    const after = t >= DROP;
+    const bi = MV.beatIndex(t);
+    // Zeitstempel laeuft mit
+    const sec = 13 * 60 + Math.floor(tq * 1);
+    ts.textContent = `24.10.2026 03:${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}:${String(Math.floor((tq % 1) * 8)).padStart(2, '0')}`;
+    rec.style.opacity = Math.floor(t * 2) % 2 ? 0.2 : 1;
+    // Mino Man klettert langsam ins Bild
+    climb(tq * 10);
+    climbEl.style.translate = `0 ${600 - tq * 60}px`;
+    // Chicken Guy teleportiert vor dem Drop alle 2 Schlaege; danach Reihe im Gleichschritt
+    C.forEach((c, i) => {
+      let vis, x, y, sc;
+      if (!after) {
+        const slot = Math.floor(bi / 2);
+        vis = i === 0 && bi >= 2 && (bi % 2 === 0 || MV.hash(slot) > 0.4);
+        x = 120 + MV.hash(slot + 7) * 700; y = 980 + MV.hash(slot + 3) * 380; sc = 0.7 + (y - 980) / 600;
+      } else {
+        vis = true;
+        x = 30 + i * 200; y = 1180 + (i % 2) * 120; sc = 1 + (i % 2) * 0.15;
+      }
+      c.el.style.opacity = vis ? 1 : 0;
+      c.el.style.left = x + 'px'; c.el.style.top = y - 420 + 'px';
+      c.el.style.transform = `scale(${sc})`;
+      c.set(after ? tq * 10 : tq * 10 + i * 5);
+    });
+    pg.style.opacity = after && bi % 4 >= 2 ? 0.9 : 0;
+    // Nach dem Drop: Waermebild + Bildstoerung auf dem Beat
+    const p = MV.pulse(t, 10);
+    nv.style.filter = after
+      ? `invert(1) hue-rotate(${180 + Math.sin(t * 3) * 60}deg) saturate(${5 + 3 * p}) contrast(1.6)`
+      : '';
+    scene.style.transform = after ? `skewX(${(MV.hash(bi) - 0.5) * 30 * p}deg) translateX(${(MV.hash(bi + 50) - 0.5) * 120 * p}px)` : 'none';
+  });
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+  MV.register('main', tl);
+</script>
+</body>
+</html>
