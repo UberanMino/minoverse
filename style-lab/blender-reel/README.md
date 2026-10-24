@@ -22,5 +22,6 @@ Weitere Optionen: `--engine CYCLES` (GPU wird automatisch gesucht), `--samples`,
 `--exposure 0.0`, `--view Standard`, `--frames a-b`, `--portrait cg:schrei,cg:ekstase,cgk:grimasse,mm,mu,gm`
 (Figurenbögen), `--save szene.blend`.
 
-Schriften in `fonts/` stehen unter der SIL Open Font License (Anton, VT323, Courier Prime, Special Elite,
-Barlow Condensed).
+Schriften: `fonts/` ist per .gitignore ausgeschlossen. Dort als TTF ablegen (alle SIL Open Font License):
+anton-latin-400-normal.ttf, vt323-latin-400-normal.ttf, courier-prime-latin-700-normal.ttf,
+special-elite-latin-400-normal.ttf, barlow-condensed-latin-800-normal.ttf (z. B. aus dem google/fonts-Repo).
