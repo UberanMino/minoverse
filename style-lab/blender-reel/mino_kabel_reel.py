@@ -447,7 +447,7 @@ def screen_material(idx, base):
     strength = nt.nodes.new("ShaderNodeMath"); strength.operation = "MULTIPLY"
     nt.links.new(vig.outputs[0], strength.inputs[0])
     nt.links.new(v_on.outputs[0], strength.inputs[1])
-    s2 = nt.nodes.new("ShaderNodeMath"); s2.operation = "MULTIPLY"; s2.inputs[1].default_value = 4.0
+    s2 = nt.nodes.new("ShaderNodeMath"); s2.operation = "MULTIPLY"; s2.inputs[1].default_value = 2.5
     nt.links.new(strength.outputs[0], s2.inputs[0])
     em = nt.nodes.new("ShaderNodeEmission")
     nt.links.new(scan.outputs[0], em.inputs["Color"])
@@ -483,7 +483,8 @@ def tv(name, loc, size=0.6, rot_z=0.0, casing=None, base="#1d3a8a", tilt=0.0, pa
     sm, nodes = screen_material(len(SCREENS), base)
     scr.data.materials.append(sm)
     # schwarzer Rahmen um die Röhre
-    prim("cube", name + "_bezel", (-w * 0.08, 0.004, h * 0.52), (sw * 1.1, 0.02, sh * 1.12), m=mat("Bezel", "#111014", 0.6), parent=root)
+    # Rahmen liegt hinter der Mattscheibe, sonst verdeckt er sie
+    prim("cube", name + "_bezel", (-w * 0.08, -0.009, h * 0.52), (sw * 1.1, 0.02, sh * 1.12), m=mat("Bezel", "#111014", 0.6), parent=root)
     if knobs:
         for i in range(2):
             prim("cyl", name + "_knob%d" % i, (w * 0.39, 0.02, h * (0.66 - i * 0.22)), (size * 0.07, size * 0.07, 0.04),
@@ -533,7 +534,9 @@ def fill_channel(s, ci):
     s["nodes"]["col"].outputs[0].default_value = hexcol(base)
     s["base"] = base
     for body, y, c in lines:
-        screen_text(s, body, 0.2 if len(body) < 9 else 0.15, c, y_rel=y)
+        # so groß wie es die Bildschirmbreite erlaubt (Anton: etwa 0,5 em pro Zeichen)
+        fit = 0.92 * s["w"] / s["h"] / (0.5 * len(body))
+        screen_text(s, body, min(0.3 if len(lines) < 3 else 0.23, fit), c, y_rel=y)
     # grünes OSD oben links: Programmnummer
     screen_text(s, "P%d" % (ci + 1), 0.12, "#59ff8a", y_rel=0.38, x_rel=-0.38, fnt="vt", strength=5)
 
@@ -577,7 +580,7 @@ screen_text(HERO, "P1", 0.14, "#59ff8a", y_rel=0.37, x_rel=-0.38, fnt="vt", stre
 screen_text(HERO, "KANAL 1 · BITTE NICHT UMSCHALTEN", 0.06, "#ffd23c", y_rel=-0.28, fnt="vt", strength=6)
 
 # Neon-Senderlogo über dem Berg
-LOGO = text("Logo", "MINO KABEL", size=0.75, m=emit_mat("Neon", "#ff3fa4", 12), loc=(0, -3.68, z + 0.8),
+LOGO = text("Logo", "MINO KABEL", size=0.62, m=emit_mat("Neon", "#ff3fa4", 12), loc=(0, -3.68, z + 0.8),
             rot=(math.radians(90), 0, math.pi), fnt="anton", extrude=0.03)
 LOGO_FRAME = prim("cube", "LogoFrame", (0, -3.75, z + 0.8), (4.2, 0.08, 1.15), m=mat("LogoBack", "#120d18", 0.6), bevel=0.04)
 
@@ -1276,13 +1279,13 @@ def animate(t):
     for i, s in enumerate(SCREENS):
         if s is HERO:
             if b < 1:
-                set_screen(s, 0.0, 1.0, t=t)
+                set_screen(s, 1.0, 1.0, t=t)   # Schnee ab dem ersten Bild, kein Schwarzbild
             elif b < 2.5:
                 set_screen(s, 1.0, 1.0 - smooth(b - 1.5), t=t)
             else:
                 set_screen(s, 1.0, 0.0, flash=0.6 * pulse(t, 0.1, 4, 0, NB), t=t)
             continue
-        on_beat = 3 + (i * 0.37) % 6           # gehen nacheinander an
+        on_beat = 0.5 + (i * 0.37) % 4         # gehen nacheinander an
         on = 1.0 if b >= on_beat else 0.0
         st = 1.0 if (b >= on_beat and b < on_beat + 0.5) else 0.0
         # vor dem Drop flackern sie immer schneller ins Rauschen
@@ -1313,8 +1316,8 @@ def animate(t):
     MATS["Neon"].node_tree.nodes["Emission"].inputs[1].default_value = (4 + 14 * hit_drop) * logo_on * (0 if end_off else 1)
 
     # --- Licht
-    FILL.data.energy = 60 + 400 * hit_drop
-    KEY.data.energy = 260 * (0.3 if b < 4 else 1.0)
+    FILL.data.energy = 150 + 400 * hit_drop
+    KEY.data.energy = 380 * (0.7 if b < 4 else 1.0)
 
     # --- Chicken Guy: tanzt immer, ab dem Drop völlig entfesselt
     wild = 0.25 + 0.75 * smooth((b - (DROP - 0.25)) / 0.25)
@@ -1417,7 +1420,7 @@ def camera(t, b):
     hero = Vector(HERO["root"].location) + Vector((-0.09, 0.0, 0.47))
     if b < 4:                                    # Kaltstart: ganz nah an der Röhre, dann Rückzug
         k = ease_inout(b / 4)
-        look(vlerp(hero + Vector((0, 0.5, 0)), hero + Vector((0.3, 3.4, 0.5)), k), hero, roll=0.04 * (1 - k), lens=lerp(40, 26, k))
+        look(vlerp(hero + Vector((0.05, 1.15, 0.05)), hero + Vector((0.3, 3.4, 0.5)), k), hero, roll=0.04 * (1 - k), lens=lerp(45, 26, k))
     elif b < 8:                                  # über den Fernseher hinweg in den Korridor
         k = ease_inout((b - 4) / 4)
         p = vlerp(hero + Vector((0.3, 3.4, 0.5)), Vector((0.6, 9.0, 2.6)), k)
@@ -1459,11 +1462,47 @@ def camera(t, b):
         look(vlerp(mm + Vector((0.15, 1.6, 0.05)), mm + Vector((0.05, 0.85, 0.02)), k), mm, lens=lerp(38, 45, k))
 
 
+def cull_cables(min_dist=0.75):
+    """Kabel, die der Kamerafahrt zu nahe kommen oder vor dem Logo hängen, fliegen raus."""
+    from mathutils.kdtree import KDTree
+    pos = []
+    for f in range(0, NFRAMES, 3):
+        t = f / FPS
+        camera(t, beat_of(t))
+        pos.append(CAM.location.copy())
+    kd = KDTree(len(pos))
+    for i, v in enumerate(pos):
+        kd.insert(v, i)
+    kd.balance()
+    dg = bpy.context.evaluated_depsgraph_get()
+    gone = 0
+    for ob in list(CABLES):
+        ev = ob.evaluated_get(dg)
+        me = ev.to_mesh()
+        mw = ob.matrix_world
+        bad = False
+        for vi in range(0, len(me.vertices), 7):
+            w = mw @ me.vertices[vi].co
+            if kd.find(w)[2] < min_dist:
+                bad = True
+                break
+            if abs(w.x) < 2.3 and -3.7 < w.y < -2.4 and LOGO.location.z - 0.7 < w.z < LOGO.location.z + 0.7:
+                bad = True
+                break
+        ev.to_mesh_clear()
+        if bad:
+            CABLES.remove(ob)
+            bpy.data.objects.remove(ob, do_unlink=True)
+            gone += 1
+    print("Kabel entfernt:", gone, "übrig:", len(CABLES))
+
+
 def on_frame(scene, depsgraph=None):
     t = (scene.frame_current - 1) / FPS
     animate(t)
 
 
+cull_cables()
 bpy.app.handlers.frame_change_pre.clear()
 bpy.app.handlers.frame_change_pre.append(on_frame)
 
