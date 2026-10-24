@@ -447,7 +447,7 @@ def ease_back(t):
     return 1 + (c1 + 1) * (t - 1) ** 3 + c1 * (t - 1) ** 2
 
 
-def val(x):
+def resolve(x):
     return x() if callable(x) else x
 
 
@@ -2148,9 +2148,9 @@ def track(b, keys):
         if b0 <= b < b1:
             e = keys[i + 1][4] if len(keys[i + 1]) > 4 else ease_inout
             k = e((b - b0) / (b1 - b0))
-            return vlerp(val(p0), val(p1), k), vlerp(val(t0), val(t1), k), lerp(l0, l1, k)
+            return vlerp(resolve(p0), resolve(p1), k), vlerp(resolve(t0), resolve(t1), k), lerp(l0, l1, k)
     last = keys[-1]
-    return Vector(val(last[1])), Vector(val(last[2])), last[3]
+    return Vector(resolve(last[1])), Vector(resolve(last[2])), last[3]
 
 
 def lin(x):
