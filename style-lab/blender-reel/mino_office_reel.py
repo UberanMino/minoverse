@@ -1397,7 +1397,7 @@ def build_minoman(loc):
 
 
 # ------------------------------------------------------------------ Realistischer Chicken-Guy-Kopf (MakeHuman hm08, CC0; Daten aus build_cg_head.py)
-CG_HEAD_DIR = opt("--cghead", os.path.join(HERE, "cghead"))
+CG_HEAD_DIR = os.path.abspath(opt("--cghead", os.path.join(HERE, "cghead")))
 
 
 def _img_node(nt, path, alpha=False, noncolor=False):
@@ -1869,7 +1869,7 @@ for i in range(50):
     FLYERS.append({"ob": ob, "seed": i})
 
 # ------------------------------------------------------------------ Echte Clips als Videotexturen
-CLIP_DIR = opt("--clips", os.path.join(HERE, "clips"))
+CLIP_DIR = os.path.abspath(opt("--clips", os.path.join(HERE, "clips")))
 CLIP_MATS = {}
 CLIP_FALLBACK = {"cg": "#c4002a", "mm": "#1b3fa8", "gm": "#1f4fd0"}
 
