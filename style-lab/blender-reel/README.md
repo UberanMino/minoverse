@@ -40,3 +40,26 @@ und Sprünge durch Bildschirme und Akten in drei Welten (Hot-Dog-Himmel, Akten-K
 
     blender -b --factory-startup --python mino_buero_reel.py -- --params params_buero_v1.json --fast --pngdir out/v1
     python mux.py --frames out/v1 --song song/my_mind.wav --params params_buero_v1.json --out out/mino_buero_v1.mp4 --ffmpeg ffmpeg
+
+## Mino Office (Runde 5)
+
+`mino_office_reel.py` setzt Raphaels Feedback zu Runde 4 um: alles Sichtbare auf Englisch, Akten nur noch organisch
+(eine liegt auf Mino Mans Tisch, die Kamera fährt hin), riesige Hochformat-Bildschirme hängen vom Himmel oder fallen herab
+und spielen echte Clips (`--clips <ordner>` mit `tex_<key>.mp4`, 360x640; die Clips liegen nur lokal, nie im Repo).
+Kamera federt nach dem Drop auf jeden Schlag (Zoom-Stoß, Ruck, Kippen), taucht in Stufen im Takt durch Bildschirme.
+Mehr Leben im Büro: Kuh, Pinguin, Tauben, Pepsi Grandma am Wasserspender, Gemüse-Band, Riesen-Sneaker am Himmel.
+
+| Variante | Ablauf | Song-Ausschnitt |
+|---|---|---|
+| 1 Case 001 | Mino Man tippt, Akte auf dem Tisch, Stotter-Zoom ins Foto, Hot-Dog-Fabrik (Chicken Guy auf dem Fließband), raus aus einem Riesenschirm, Party, Officer Munch isst die Akte | `params_office_v1.json` |
+| 2 Orbit | Riesenschirm fällt in den Gang, Kamera schießt im Takt ins All, Großraumbüro im Weltall, Sturz zurück, Party | `params_office_v2.json` |
+| 3 Surf | Chicken Guy und Mino Man tanzen durch die Gänge, Sprung in einen Riesen-PC, Pepsi-Ozean mit Surf-Tricks, Party, Luftbild | `params_office_v3.json` |
+
+Chicken Guy hat jetzt einen realistischen Kopf aus dem MakeHuman-Basismesh (hm08, CC0) mit den afrikanischen
+Ausdrucks-Targets als Shape Keys, angepassten Augen, Zähnen (mit Lücken), Zunge, Brauen, Wimpern und Hauttextur.
+`build_cg_head.py` erzeugt daraus `cg_head.npz` + Texturen (Eingabe: entpackte MPFB-Erweiterung `ext/` und
+MakeHuman-System-Assets `assets/`); das Reel liest den Ordner über `--cghead`. Ohne Daten fällt es auf den alten Kopf zurück.
+
+    python build_cg_head.py --mh <mpfb-ordner> --out cghead
+    blender -b --factory-startup --python mino_office_reel.py -- --params params_office_v1.json --clips clips --cghead cghead --fast --pngdir out/o1
+    python mux.py --frames out/o1 --song song/my_mind.wav --params params_office_v1.json --out out/mino_office_v1.mp4 --ffmpeg ffmpeg
