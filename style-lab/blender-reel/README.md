@@ -86,3 +86,28 @@ deshalb k · 0,4 s + 0,0062 s. In den Runden 4 und 5 lag der Drop einen halben S
 
     blender -b --factory-startup --python mino_screens_reel.py -- --params params_screens_v1.json --clips <abs>/clips --cghead <abs>/cghead --fast --pngdir out/screens_v1
     python mux.py --frames out/screens_v1 --song song/my_mind.wav --params params_screens_v1.json --out out/mino_screens_v1.mp4 --ffmpeg ffmpeg
+
+## Mino Heaven (Runde 7)
+
+`mino_heaven_reel.py` übernimmt aus `mino_screens_reel.py` Figuren, Dat-Swag-Kamera, Tanz und Clip-Texturen und setzt das
+Feedback zu Runde 6 um: Statt einzelner Screens hängen Blöcke vom Himmel. Ein Block besteht aus sechs Screens im Sechseck,
+die alle denselben Clip synchron zeigen. Die Blöcke drehen sich um die Hochachse (vor dem Drop langsam, danach rasten sie
+auf jedem Schlag um 60° weiter, in Schlag 32–40 auf jedem halben) und ordnen sich auf dem Beat zu Formationen (Reihe, Bogen,
+Kreuz, Ring, Pyramide, Turm, Helix, Figur …). In der Mosaik-Formation schalten alle Blöcke auf einen Kanal und setzen ein
+Riesenbild von Chicken Guy zusammen. Mino Man legt an einem Marmor-Altar mit zwei Plattenspielern auf (Kopfhörer, Cue-Griff,
+Faust auf der Takt-Eins), die Gemeinde in weißen Gewändern mit Goldstola betet an, hüpft, verbeugt sich. Das Büro ist
+verschwunden: Wolkenboden, Säulen, Orgelpfeifen, Rosenfenster, Himmelstreppe, Kerzen, Tauben.
+
+Clips: `tex_cg2.mp4` und `tex_gm2.mp4` (neue Chicken-Guy- und Pepsi-Grandma-Clips, 360x640, 30 fps) liegen wie alle Medien
+nur lokal im `clips`-Ordner.
+
+| Variante | Ablauf | Song-Ausschnitt |
+|---|---|---|
+| 1 Kathedrale | Säulenhalle auf Wolken, Orgel, Altar; Blöcke bilden Kreuz, Ring, Pyramide, Turm, am Ende das Mosaik | `params_heaven_v1.json` |
+| 2 Spiegelhimmel | Goldener Himmel über einem Spiegelboden, schwebendes DJ-Pult, Ringe aus Blöcken, Helix, Mosaik, Heiligenschein | `params_heaven_v2.json` |
+| 3 Rosenfenster | Die Blöcke sind die Blütenblätter eines leuchtenden Rosenfensters, lösen sich auf dem Drop und kehren zurück | `params_heaven_v3.json` |
+| 4 Himmelstreppe | Chicken Guy steigt die Treppe zum goldenen Tor hoch, oben legt Mino Man auf, Blöcke als Kreuz, Treppe, Mosaik | `params_heaven_v4.json` |
+| 5 Lichtmesse | Nacht, hunderte Kerzen; die Blöcke werden zu einem Block-Götzen, der am Ende die Arme hebt | `params_heaven_v5.json` |
+
+    blender -b --factory-startup --python mino_heaven_reel.py -- --params params_heaven_v1.json --clips <abs>/clips --cghead <abs>/cghead --fast --pngdir out/heaven_v1
+    python mux.py --frames out/heaven_v1 --song song/my_mind.wav --params params_heaven_v1.json --out out/mino_heaven_v1.mp4 --ffmpeg ffmpeg
