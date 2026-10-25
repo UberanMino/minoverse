@@ -111,3 +111,23 @@ nur lokal im `clips`-Ordner.
 
     blender -b --factory-startup --python mino_heaven_reel.py -- --params params_heaven_v1.json --clips <abs>/clips --cghead <abs>/cghead --fast --pngdir out/heaven_v1
     python mux.py --frames out/heaven_v1 --song song/my_mind.wav --params params_heaven_v1.json --out out/mino_heaven_v1.mp4 --ffmpeg ffmpeg
+
+## Mino Drift (Runde 8)
+
+`mino_drift_reel.py` geht zurück zu den Ideen aus Büro v2/v3 und Office v2/v3 (Hot-Dog-Fabrik, Surfen, Weltall), behält aber
+die ruhige Dat-Swag-Kamera. Anker ist die Weltall-Insel mit leuchtender Tanzfläche. Mino Man und Chicken Guy gleiten durch
+Riesen-Screens von Welt zu Welt (Flash auf jedem Weltwechsel): Hot-Dog-Fabrik, Pepsi-Meer, Screen-Tunnel, Himmel mit
+Hot-Dog-Regen ("GOD IS OUT OF OFFICE"), Büro als Cameo. Mehr Swag: Mino Man im lila Polka-Anzug mit Goldrevers, Goldkette
+und roten Sohlen; Chicken Guy mit Sonnenbrille, Bandana und Goldkette mit Dollar-Medaillon. Easter Eggs: UFO entführt eine
+Kuh, fliegender Toaster, Satellit des Vegan-Hot-Dog-Rain-Programms, Gummiente, Pinguin auf Jetski, Banner-Rakete
+"GUCCI MOVES", Pepsi-Oma auf einer Pepsi-Rakete, tanzende Hot Dogs mit Sonnenbrillen, Diskokugel. Knalligere Farben:
+hellere Himmel, Sättigung und Kontrast im Compositor, Belichtung +0,25.
+
+| Variante | Ablauf | Song-Ausschnitt |
+|---|---|---|
+| 1 Drift | All (Flugstuhl, UFO) -> Fabrik -> Tunnel -> Pepsi-Surf mit Gummiente -> Party auf der Insel | `params_drift_v1.json` |
+| 2 Orbit Surf | Surfen durchs All und durch ein Tor aus Screens -> Fallschirmsprung in den Hot-Dog-Regen -> Büro-Party -> Tunnel -> Party | `params_drift_v2.json` |
+| 3 Hot Dog Hustle | All -> Tunnel -> Fabrik -> Ritt auf dem Riesen-Hot-Dog -> Pepsi -> Screen-Wand setzt Chicken Guy zusammen | `params_drift_v3.json` |
+
+    blender -b --factory-startup --python mino_drift_reel.py -- --params params_drift_v1.json --clips <abs>/clips --cghead <abs>/cghead --fast --pngdir out/drift_v1
+    python mux.py --frames out/drift_v1 --song song/my_mind.wav --params params_drift_v1.json --out out/mino_drift_v1.mp4 --ffmpeg ffmpeg
