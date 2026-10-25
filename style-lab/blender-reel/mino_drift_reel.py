@@ -11,6 +11,7 @@ Varianten (--variant oder "variant" in den Params):
 
   blender -b --factory-startup --python mino_drift_reel.py -- --params params_drift_v1.json --clips <abs>/clips --cghead <abs>/cghead --fast --pngdir out/drift_v1
   Optionen wie mino_office_reel.py (--still, --frames, --res, --engine, --samples, --nocomp, --exposure, --portrait)
+  Farbkorrektur: --sat (1.3) --value (1.04) --bright (2) --contrast (14); weich z. B. --sat 1.15 --value 1.0 --contrast 4 --exposure 0.05
 """
 import json
 import math
@@ -4750,15 +4751,16 @@ def setup_compositor():
     # Runde 8: knalliger – mehr Sättigung und Kontrast nach dem Bloom
     try:
         hs = ng.nodes.new("CompositorNodeHueSat")
-        for name, val in (("Saturation", 1.3), ("Value", 1.04)):
+        sat = float(opt("--sat", 1.3))
+        for name, val in (("Saturation", sat), ("Value", float(opt("--value", 1.04)))):
             if name in hs.inputs:
                 hs.inputs[name].default_value = val
         if hasattr(hs, "color_saturation"):
-            hs.color_saturation = 1.3
+            hs.color_saturation = sat
         ng.links.new(last, hs.inputs["Image"])
         last = hs.outputs["Image"]
         bc = ng.nodes.new("CompositorNodeBrightContrast")
-        for name, val in (("Bright", 2.0), ("Brightness", 2.0), ("Contrast", 14.0)):
+        for name, val in (("Bright", 2.0), ("Brightness", float(opt("--bright", 2.0))), ("Contrast", float(opt("--contrast", 14.0)))):
             if name in bc.inputs:
                 bc.inputs[name].default_value = val
         ng.links.new(last, bc.inputs["Image"])
