@@ -63,3 +63,26 @@ MakeHuman-System-Assets `assets/`); das Reel liest den Ordner über `--cghead`. 
     python build_cg_head.py --mh <mpfb-ordner> --out cghead
     blender -b --factory-startup --python mino_office_reel.py -- --params params_office_v1.json --clips clips --cghead cghead --fast --pngdir out/o1
     python mux.py --frames out/o1 --song song/my_mind.wav --params params_office_v1.json --out out/mino_office_v1.mp4 --ffmpeg ffmpeg
+
+## Mino Screens (Runde 6)
+
+`mino_screens_reel.py` baut auf `mino_office_reel.py` auf (Welt, Figuren, Chicken-Guy-Kopf, Clips) und setzt das Feedback zu
+Runde 5 um: Kamera wieder wie bei Dat Swag (feste Einstellung etwa alle 4 Schläge, weicher Übergang, leichtes Driften,
+Zoom-Stoß auf jedem Schlag und kleiner Ruck auf jeder Takt-Eins, kein Kippen), Tanz im Dat-Swag-Muster (Wiegen, Hüpfen,
+Armmuster wechselt pro Takt), Erzählung als Cold Open → Aufbau → Drop → Steigerung → Payoff. Die vom Himmel hängenden
+Screens stehen im Mittelpunkt und setzen sich zu etwas zusammen, das angebetet wird. Das Büro ist nur noch Horizont und
+ein Side-Screen („OFFICE CAM LIVE“, Clip `tex_office.mp4`).
+
+Der Drop liegt jetzt exakt auf Schlag 16: Das Beat-Raster des Songs beginnt bei 0,0062 s (150 BPM), die Offsets sind
+deshalb k · 0,4 s + 0,0062 s. In den Runden 4 und 5 lag der Drop einen halben Schlag zu spät.
+
+| Variante | Ablauf | Song-Ausschnitt |
+|---|---|---|
+| 1 Idol | Zehn Screens bauen auf dem Platz eine Statue, Chicken Guy fällt auf den Altar aus Monitoren, die Menge bildet einen Ring, verbeugt sich, feiert | `params_screens_v1.json` |
+| 2 Orbit-Idol | Im Weltall-Büro treiben Screens im Orbit, rasten zur Statue ein, Chicken Guy tanzt auf einem schwebenden Schreibtisch | `params_screens_v2.json` |
+| 3 Totem | Ein Turm aus Screens wächst, die Etagen drehen sich wie Walzen eines Spielautomaten, die Polonaise zieht drumherum | `params_screens_v3.json` |
+| 4 Wand | Zwölf Screens landen als Wand und ergeben zusammen ein Riesenbild von Chicken Guy, Schiebepuzzle, die Wand platzt | `params_screens_v4.json` |
+| 5 Karussell | Ein Ring aus Screens kreist um das Weltall-Büro, alle schalten auf denselben Kanal, der Ring wird Mino Mans Heiligenschein | `params_screens_v5.json` |
+
+    blender -b --factory-startup --python mino_screens_reel.py -- --params params_screens_v1.json --clips <abs>/clips --cghead <abs>/cghead --fast --pngdir out/screens_v1
+    python mux.py --frames out/screens_v1 --song song/my_mind.wav --params params_screens_v1.json --out out/mino_screens_v1.mp4 --ffmpeg ffmpeg
